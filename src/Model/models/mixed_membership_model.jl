@@ -44,8 +44,8 @@ function MixedMembershipModel(decisions::Vector{Decision}; levelfun=class)
 end
 
 function (problem::MixedMembershipModel)(θ)
-    @unpack α, zt, zj, zc, σt, σj, σc = θ
-    @unpack ys, ts, js, cs, njs, ncs, T, J, C = problem
+    (;α, zt, zj, zc, σt, σj, σc) = θ
+    (;ys, ts, js, cs, njs, ncs, T, J, C) = problem
 
     loglik = sum(
         @views logpdf(Bernoulli(logistic(α + zt[t]*σt + sum(x->x*σj, zj[j]) / nj + sum(x->x*σc, zc[c]) / nc)), y) 
@@ -73,10 +73,10 @@ function transformation(problem::MixedMembershipModel)
 end
 
 function predict(problem::MixedMembershipModel, post::DynamicHMCPosterior)
-    @unpack ys, ts, js, cs, njs, ncs, T, J, C = problem
+    (;ys, ts, js, cs, njs, ncs, T, J, C) = problem
 
     map(post) do s
-        @unpack α, zt, zj, zc, σt, σj, σc = s
+        (;α, zt, zj, zc, σt, σj, σc) = s
         map(zip(ts, js, cs, njs, ncs)) do (t, j, c, nj, nt)
             logistic(α + zt[t]*σt + sum(x->x*σj, zj[j]) / nj + sum(x->x*σc, zc[c]) / nt)
         end

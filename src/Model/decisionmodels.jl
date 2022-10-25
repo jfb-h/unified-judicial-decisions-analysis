@@ -19,9 +19,10 @@ end
 struct representing the posterior distribution of a model's parameters sampled with DynamicHMC.
 Also used for dispatch in the `sample` method.
 """
-struct DynamicHMCPosterior{T,S} <: AbstractPosterior
+struct DynamicHMCPosterior{T,S,R} <: AbstractPosterior
     post::T
     stat::S
+    res::R
 end
 
 stats(x::DynamicHMCPosterior) = getfield(x, :stat)
@@ -42,7 +43,6 @@ function Base.show(io::IO, ::MIME"text/plain", p::DynamicHMCPosterior)
     print(io, "DynamicHMCPosterior with $(length(p)) samples and parameters $params")
 end
 
-
 struct NUTS <: AbstractInferenceAlgorithm end
 
 """
@@ -52,7 +52,7 @@ Sample from the posterior distribution of `problem` with the sampling
 algorithm specified by the first argument, taking `iter` samples.
 If the first argument is omitted, NUTS via `DynamicHMC`` is used by default.
 """
-function sample(::NUTS, problem::AbstractDecisionModel, iter::Integer; backend=:ForwardDiff)
+function sample(::NUTS, problem::AbstractDecisionModel, iter::Integer, chains::Integer=4; backend=:ForwardDiff)
     t = transformation(problem)
     ℓ = TransformedLogDensity(t, problem)
     ∇ℓ = if backend == :ForwardDiff
@@ -62,14 +62,12 @@ function sample(::NUTS, problem::AbstractDecisionModel, iter::Integer; backend=:
     else
         throw(ArgumentError("Unknown AD backend."))
     end
-    r = mcmc_with_warmup(Random.GLOBAL_RNG, ∇ℓ, iter; reporter=ProgressMeterReport())
-    post = StructArray(TransformVariables.transform.(t, r.chain))
-    stat = (tree_statistics=r.tree_statistics, κ=r.κ, ϵ=r.ϵ)
-    DynamicHMCPosterior(post, stat)
+    res = [mcmc_with_warmup(Random.GLOBAL_RNG, ∇ℓ, iter; reporter=ProgressMeterReport()) for _ in 1:chains]
+    post = TransformVariables.transform.(t, eachcol(pool_posterior_matrices(res)))
+    stat = [(tree_statistics=r.tree_statistics, κ=r.κ, ϵ=r.ϵ) for r in res]
+    DynamicHMCPosterior(post, stat, res)
 end
-
-sample(problem, iter; kwargs...) = sample(NUTS(), problem, iter; kwargs...)
-sample(problem, iter, chains; kwargs...) = error("Sampling with multiple chains not implemented yet.")
+sample(problem, iter, chains; kwargs...) = sample(NUTS(), problem, iter, chains; kwargs...)
 
 
 """
@@ -81,13 +79,14 @@ function predict(problem::AbstractDecisionModel, post::AbstractPosterior)
     throw(ArgumentError("Not implemented yet for $(typeof(problem)). Needs to be implemented on a per-model basis."))
 end
 
-# """
-#     checkconvergence(post)
+"""
+    checkconvergence(post)
 
-# Check effective sample sizes and convergence statistics for the NUTS algorithm.
-# """
-# function checkconvergence(post::DynamicHMCPosterior)
-#     ess = vec(mapslices(MCMCDiagnostics.effective_sample_size, DynamicHMC.position_matrix(_post(post)); dims=2))
-#     tree_stats = DynamicHMC.Diagnostics.summarize_tree_statistics(stats(post).tree_statistics)
-#     (;ess, tree_stats)
-# end
+Check effective sample sizes and convergence statistics for the NUTS algorithm.
+"""
+function checkconvergence(post::DynamicHMCPosterior)
+    res = getfield(post, :res)
+    ess, R̂ = ess_rhat(stack_posterior_matrices(res))
+    treestats = summarize_tree_statistics(mapreduce(x -> x.tree_statistics, vcat, res))
+    (;ess, R̂, treestats)
+end

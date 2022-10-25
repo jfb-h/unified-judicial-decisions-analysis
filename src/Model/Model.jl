@@ -12,11 +12,12 @@ using StructArrays
 using Random
 using LinearAlgebra
 using Distributions
-using UnPack
+import ReverseDiff
 using LogDensityProblems
 using TransformVariables
+using TransformedLogDensities
 using DynamicHMC
-import ReverseDiff
+using DynamicHMC.Diagnostics
 using MCMCDiagnosticTools
 using StatsFuns: logistic
 using StatsBase: countmap
@@ -28,9 +29,6 @@ include("utils.jl")
 
 include("models/binomial_groups_model.jl")
 include("models/mixed_membership_model.jl")
-include("models/multi_mixed_membership_model.jl")
-include("models/multi_mixed_membership_time_model.jl")
-include("models/multi_mixed_membership_chairman_model.jl")
 
 include("visualization.jl")
 
@@ -40,7 +38,7 @@ export id, label, senate, outcome, judges, date, patent, cpc, subclass, class, s
 export cpc2int
 
 # data import
-export DataSource, BPatG
+export loaddata
 
 # plotting
 export plot_posterior, errorplot!, errorplot, ridgeplot!, ridgeplot
@@ -50,6 +48,5 @@ export transformation, sample, paramnames, predict, stats, predict_groups
 export DynamicHMCPosterior
 
 export BinomialGroupsModel, MixedMembershipModel 
-export MultiMixedMembershipModel, MultiMixedMembershipTimeModel, MultiMixedMembershipChairmanModel
 
 end

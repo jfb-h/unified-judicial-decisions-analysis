@@ -1,8 +1,4 @@
 
-abstract type DataSource end
-
-struct BPatG end
-
 const OUTCOMES = dictionary([
     "annulled" => 1,
     "partially annulled" => 1, 
@@ -11,12 +7,14 @@ const OUTCOMES = dictionary([
 ])
 
 """
-    loaddata(BPatG(), dir)
+    loaddata(dir)
 
 Load data in `.jsonl` format from directory dir and construct a `Vector{Decision}`.
 """
-function loaddata(::BPatG, jsonfile::AbstractString)
-    json = JSON3.read(read(jsonfile), jsonlines=true)
+function loaddata(dir::AbstractString)
+    json = mapreduce(vcat, joinpath.(dir, readdir(dir))) do file
+        JSON3.read(read(file), jsonlines=true)
+    end
 
     #TODO: Better missing handling
     json = filter(json) do j
