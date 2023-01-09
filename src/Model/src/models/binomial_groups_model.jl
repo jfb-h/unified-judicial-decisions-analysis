@@ -28,3 +28,11 @@ end
 function transformation(problem::BinomialGroupsModel)
     as((αs=as(Array, asℝ, length(problem.group)), μ=asℝ, σ=asℝ₊))
 end
+
+function predict(problem::BinomialGroupsModel, post)
+    map(s -> logistic.(s.αs), post)
+end
+
+function empirical(problem::BinomialGroupsModel)
+    problem.ys ./ problem.ns
+end

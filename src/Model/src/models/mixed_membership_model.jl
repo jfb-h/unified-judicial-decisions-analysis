@@ -72,13 +72,13 @@ function transformation(problem::MixedMembershipModel)
     ))
 end
 
-function predict(problem::MixedMembershipModel, post::DynamicHMCPosterior)
+function predict(problem::MixedMembershipModel, post)
     (;ys, ts, js, cs, njs, ncs, T, J, C) = problem
 
     map(post) do s
         (;α, zt, zj, zc, σt, σj, σc) = s
         map(zip(ts, js, cs, njs, ncs)) do (t, j, c, nj, nt)
-            logistic(α + zt[t]*σt + sum(x->x*σj, zj[j]) / nj + sum(x->x*σc, zc[c]) / nt)
+            @views logistic(α + zt[t]*σt + sum(x->x*σj, zj[j]) / nj + sum(x->x*σc, zc[c]) / nt)
         end
     end
 end

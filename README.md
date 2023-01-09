@@ -1,5 +1,5 @@
 
-# Judicial decision making at the Bundespatentgericht, 2000 - 2020
+# Judicial decision making at the Bundespatentgericht, 2000 - 2021
 
 This repository contains Julia code accompanying the paper 'Patent litigation between legalist and behaviouralist accounts of judicial decision making: Validity trials at the German Federal Patent Court, 2000-2020' written in the context of the UNIFIED project. It contains all steps to reproduce the analysis, including download, data cleaning and augmentation, modeling and visualization. 
 

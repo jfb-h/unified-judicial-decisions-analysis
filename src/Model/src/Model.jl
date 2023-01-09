@@ -1,10 +1,12 @@
 module Model
 
 using Reexport: @reexport
+
 @reexport using Statistics
+@reexport using DataFrames
+@reexport using CairoMakie
 
 using JSON3
-using CSV
 using Dates
 using Dictionaries: Dictionary, dictionary, sortkeys
 using SplitApplyCombine: group
@@ -21,7 +23,8 @@ using DynamicHMC.Diagnostics
 using MCMCDiagnosticTools
 using StatsFuns: logistic
 using StatsBase: countmap
-using CairoMakie; set_theme!(theme_light())
+
+set_theme!(theme_light())
 
 include("datamodel.jl")
 include("decisionmodels.jl")
@@ -44,7 +47,7 @@ export loaddata
 export plot_posterior, errorplot!, errorplot, ridgeplot!, ridgeplot
 
 # bayesian modeling
-export transformation, sample, paramnames, predict, stats, predict_groups
+export transformation, sample, paramnames, predict, stats, predict_groups, empirical
 export DynamicHMCPosterior
 
 export BinomialGroupsModel, MixedMembershipModel 

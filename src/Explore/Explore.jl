@@ -181,7 +181,7 @@ function plot_senate_outcomes(fig=Figure())
 	barplot!(ax, d.senate .+1, d.share, stack=d.outcome_int, color=PAL[d.outcome_int])
 	
 	text!(string.(n), position= Point.(1:length(n), 1.04), 
-		align=(:center, :center), color=:black, textsize=16, font="Arial bold")
+		align=(:center, :center), color=:black, fontsize=16, font="Arial bold")
 	
 	# m = [MarkerElement(color=PAL[i], marker=:rect, strokecolor=:black) for i in 1:k]
 	# Legend(fig[2,1], m, options, orientation=:horizontal)
@@ -259,7 +259,7 @@ function plot_network_judge(fig=Figure())
 	hidedecorations!(ax)
 
 	text!("Colors represent communities\nobtained by the Louvain method",
-		position=(-11, -9), textsize=12, color=:grey20)
+		position=(-11, -9), fontsize=12, color=:grey20)
 	fig
 end
 
@@ -313,7 +313,7 @@ function plot_composite()
 	rowsize!(fig.layout, 1, Relative(.15))
 	
 	Label(fig[0,:], "Nullity Decisions by the German Federal Patent Court (BPatG)", 
-		textsize=40, color=:grey40, font="Arial bold")
+		fontsize=40, color=:grey40, font="Arial bold")
 	
 	fig
 end

@@ -11,12 +11,9 @@ module Filter
 
 using RCall: @R_str, @rget
 using ProgressMeter: @showprogress
-#using Dates
-
 
 const RAWDIR = "data/raw/pdf_total"
 const FILTERDIR = "data/raw/pdf_filtered"
-
 
 function parse_pdf(file)
     R"t = suppressMessages(pdftools::pdf_text($file))"

@@ -78,4 +78,4 @@ function igraph_layout_fruchtermanreingold(g::AbstractGraph; seed=1234)
     return [Point(y, x) for (x, y) in eachrow(l)]
 end
 
-label(fig, pos, text) = Label(fig[pos..., TopLeft()], text, font="Arial bold", textsize=24, color=:grey30, padding=[0, 0, 20, 0])
+label(fig, pos, text) = Label(fig[pos..., TopLeft()], text, font="Arial bold", fontsize=24, color=:grey30, padding=[0, 0, 20, 0])

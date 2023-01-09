@@ -12,7 +12,6 @@ function transformation(problem)
     throw(ArgumentError("Not implemented for $(typeof(problem))"))
 end
 
-
 """
     DynamicHMCPosterior
 
@@ -73,7 +72,7 @@ sample(problem, iter, chains; kwargs...) = sample(NUTS(), problem, iter, chains;
 """
     predict(problem, post)
 
-Perform posterior prediction base on posterior distribution `post` over the data in `problem`.
+Perform posterior prediction based on posterior distribution `post` over the data in `problem`.
 """
 function predict(problem::AbstractDecisionModel, post::AbstractPosterior) 
     throw(ArgumentError("Not implemented yet for $(typeof(problem)). Needs to be implemented on a per-model basis."))
