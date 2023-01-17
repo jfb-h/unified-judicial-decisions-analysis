@@ -2,10 +2,8 @@ using Model
 using DataFramesMeta
 using Dates
 
-decisions = loaddata("data/processed/json_augmented")
-
-# judges activity over time
-let df = @chain decisions begin
+function prepdata(decisions)
+    @chain decisions begin
         DataFrame(judge=judges.(_), date=date.(_))
         flatten(:judge)
         @rtransform begin
@@ -20,7 +18,9 @@ let df = @chain decisions begin
             groupindices => :gid,
             )
     end
+end
 
+function plotdata(df)
     segments = unique(df, [:judge, :first, :last])
 
     from = [Point(x, y) for (x, y) in zip(datetime2rata.(segments.first), 1:nrow(segments))]
@@ -39,3 +39,11 @@ let df = @chain decisions begin
     save("visuals/judges_activity.png", fig)
     fig
 end
+
+function main()
+    decisions = loaddata("data/processed/json_augmented")
+    df = prepdata(decisions)
+    plotdata(df)
+end
+
+main()

@@ -1,5 +1,6 @@
 library(tidyverse)
 library(mgcv)
+library(ggplot)
 
 df = read_csv("data_R.csv")
 df$date_num = as.numeric(df$date)
