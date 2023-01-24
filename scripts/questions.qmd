@@ -1,0 +1,345 @@
+---
+title: Judicial Decisions on Patent Validity
+subtitle: Cases at the German Federal Patent Court, 2000 - 2020
+format: 
+    html:
+        toc: true
+        code-fold: false
+jupyter: julia-1.8
+execute:
+    daemon: 900
+---
+
+## Judicial Decision Making in Patent Litigation
+
+In the legal and political science literatures, there has been an ongoing debate about what drives judicial decision making for more than 100 years (Cross 2003). The *legalist* (or *legal rationalist* or *legal formalist*) tradition sees the judge as a vehicle executing the law. The *realist* (or *behaviouralist*) tradition sees the law as incomplete and leaving decision making degrees of freedom to judges, which respond to attitudinal preferences or strategic incentives (Segal 2001, Epstein & Knight 2013). This debate is strongly biased towards the USA and especially its Supreme Court, where politically controversial cases and partisan decision making are frequent.
+
+While the realist approach has demonstrated its relevance in the setting of politicized US courts in many empirical studies (e.g. Segal & Cover 1989), patent law differs from other fields of law due to its highly technical nature. To come to a satisfactory conclusion in a patent dispute, in-depth technical knowledge relating to the case at hand is usually required in addition to legal knowledge. These differences also change the appropriateness of legalist and realist accounts of judicial decision making. At least three factors favour a legalist model of decision making in patent litigation: (1) a complete description of the facts of the case exists in the form of the patent document, (2) there are standard legal techniques (such as the fictious 'person skilled in the art' or criteria for validity) to derive a conclusion from the facts of the case and the law, and (3) there are less obvious political incentives for the judiciary in the outcomes of most patent disputes.
+
+> $H_{l}$: Under a legalist model of judicial decision making, there should be no systematic between-judge variation across comparable cases.
+
+Despite ostensibly transparent criteria and comprehensive technical information, the reality of judicial decision making in the context of patent litigation is often different: First, there is often deliberate uncertainty in the technical specification contained in the patent document to broaden its scope of protection (Mullally 2009). Second, specific legal constructions are often applied differently in different legal contexts or schools of thought, such as was the case with the 'doctrine of equivalents' in the famous Epilady controversy (Hatter 1994). And third, patent judges have been found to diverge in their substantive interpretations of what constitutes a patent (Lazega et al. 2017). 
+
+> $H_{r}$: Under a realist model of judicial decision making, there are judge degrees of freedom, allowing for between-judge variation in decision making even for comparable cases.
+
+The goal of this paper is to empirically test $H_l$ against $H_r$ within a single court, the German Federal Patent Court. A core task is then to define what constitutes 'comparable cases'. We here investigate three  factors to control for: First, time, as the observation period stretches over a period of relative turmoil in the global patenting system, which might have a systematic impact on case outcomes. Second, technology classification, as different technologies might be subject to different industry dynamics, which in turn might tip the scales systematically in the plaintiff's or defendant's direction. And third, senate affiliation, as specific senates might have developed their own explicit or implicit rules. 
+
+
+## Data on Validity Cases at the Bundespatentgericht
+
+```{julia}
+#| code-fold: true
+using Model
+using Dictionaries, SplitApplyCombine
+using DataFramesMeta, Dates
+```
+
+The data explored here were obtained from the [BPatG online repository](http://juris.bundespatentgericht.de/cgi-bin/rechtsprechung/list.py?Gericht=bpatg&Art=en&Sort=12288&Datum=Aktuell) containing all of the court's decisions since 2000. Initially, all 30,000 documents were downloaded. Among these, nullity decisions were selected and filtered down to only verdict documents (excluding, e.g., additional decisions on compensation etc.). This left around 1,200 documents, from which key metadata were extracted.
+
+```{julia}
+decisions = Model.loaddata("../data/processed/json_augmented");
+```
+
+```{julia}
+#| code-fold: false
+
+# Get a look at the data for an example decision
+first(decisions)
+```
+
+```{julia}
+#| code-fold: false
+
+# count of observations in the sample
+length(decisions)
+```
+
+An outcome is coded as 0 if the claim is dismissed and as 1 if the patent is fully or partially annulled:
+
+```{julia}
+# count of observations by outcome label
+groupcount(outcome, decisions) |> sort
+```
+
+
+## Exploratory Results
+
+```{julia}
+#| code-fold: true
+
+# Helper function to count and compute the share of 
+# dismissed cases for a collection of decisions
+function summarize_outcome(ds)
+    n = length(ds)
+    countf(l) = count(d -> label(outcome(d)) == l, ds) / n
+    outcome_labels = ("claim dismissed", "partially annulled", "annulled")
+    dismissed, partial, annulled = countf.(outcome_labels)
+    (;n, dismissed, partial, annulled)
+end;
+
+# yarrrr...
+function DataFrames.DataFrame(d::Dictionary)
+    ks = collect(keys(d))
+    vs = collect(values(d))
+    df = DataFrame(vs)
+    insertcols!(df, 1, :keys => ks)
+end
+```
+
+### Is there variation over time?
+
+```{julia}
+df = map(summarize_outcome, group(Dates.year ∘ date, decisions)) |> DataFrame;
+```
+
+::: {.panel-tabset}
+
+## Plot
+
+```{julia}
+#| code-fold: true
+
+using CairoMakie, AlgebraOfGraphics
+
+function plot_outcome_year(df)
+    outcomes = [:dismissed, :partial, :annulled]
+    dflong = DataFrames.stack(df, outcomes)
+    dflong.value = dflong.value .* dflong.n
+
+    plt = data(dflong) * mapping(
+            :keys => "", :value => ""; 
+            stack=:variable, 
+            color=:variable => ""
+          ) * visual(BarPlot)
+    
+    draw(plt; legend=(;position=:bottom))
+end
+
+plot_outcome_year(df)
+```
+
+## Data
+
+```{julia}
+#| echo: false
+df
+```
+
+:::
+
+Looking at outcomes by year, the most striking feature is missing data for 2006 and partially 2007, which is due to judge names not being recorded in the decision documents for that period. Furthermore, there seem to be fewer cases per year since about 2013. (TODO: In accordance with reporting?)
+In terms of variation over time, there is a slight indication of less dismissals in recent years but the trend is not very strong.  
+
+
+### Is there variation between senates?
+
+```{julia}
+df = map(summarize_outcome, group(label ∘ senate, decisions)) |> DataFrame;
+```
+
+::: {.panel-tabset}
+
+## Plot
+
+```{julia}
+#| code-fold: true
+
+function plot_outcome_senate(df)
+    outcomes = [:dismissed, :partial, :annulled]
+    dflong = DataFrames.stack(df, outcomes)
+    dflong.value = dflong.value .* dflong.n
+
+    plt = data(dflong) * mapping(
+            :keys => "", :value => ""; 
+            stack=:variable, 
+            color=:variable => ""
+          ) * visual(BarPlot)
+    
+    draw(plt; legend=(;position=:bottom), axis=(;xticklabelrotation=1))
+end
+
+plot_outcome_senate(df)
+```
+
+## Data
+
+```{julia}
+#| echo: false
+df
+```
+
+:::
+
+
+### Is there variation between judges?
+
+```{julia}
+#| code-fold: true
+
+Model.label(s::String) = s
+
+function flatten_and_summarize(decisions, by)
+    df = DataFrame(group=by.(decisions), outcome=label.(outcome.(decisions)))
+    df = @chain df begin
+        DataFrames.flatten(:group)
+        groupby([:group, :outcome])
+        combine(nrow => :count)
+        groupby(:group)
+        @transform(:n = sum(:count))
+        @rtransform(:share = :count / :n)
+        unstack([:group, :n], :outcome, :share)
+        @rtransform(:group = label(:group))
+        sort!(:n; rev=true)
+    end
+end;
+```
+
+```{julia}
+df = flatten_and_summarize(decisions, judges);
+```
+
+
+::: {.panel-tabset}
+
+## Plot
+
+```{julia}
+#| code-fold: true
+
+function plot_outcome_judge(df)
+    outcomes = ["claim dismissed" => "dismissed", 
+                "partially annulled" => "partial", 
+                "annulled" => "annulled"]
+
+    dftop = first(rename(df, outcomes), 15)
+    dflong = DataFrames.stack(dftop, last.(outcomes))
+    dflong.counts = dflong.value .* dflong.n
+    
+    judgeorder = sort!(dftop, :dismissed).group
+
+    plt = data(dflong) * mapping(
+            :group => sorter(judgeorder) => "", :counts => ""; 
+            stack=:variable, 
+            color=:variable => ""
+          ) * visual(BarPlot)
+    
+    draw(plt; legend=(;position=:bottom), axis=(;xticklabelrotation=1))
+end
+
+plot_outcome_judge(df)
+
+```
+
+## Data
+
+```{julia}
+#| echo: false
+df
+```
+
+:::
+
+### Is there variation betweeen technologies?
+
+```{julia}
+df = flatten_and_summarize(decisions, class ∘ patent);
+```
+
+::: {.panel-tabset}
+
+## Plot
+
+```{julia}
+#| code-fold: true
+
+function plot_outcome_judge(df)
+    outcomes = ["claim dismissed" => "dismissed", 
+                "partially annulled" => "partial", 
+                "annulled" => "annulled"]
+
+    dftop = first(rename(@rsubset(df, :group != "Y10"), outcomes), 15)
+    dflong = DataFrames.stack(dftop, last.(outcomes))
+    dflong.counts = dflong.value .* dflong.n
+    
+    order = sort!(dftop, :dismissed).group
+
+    plt = data(dflong) * mapping(
+            :group => sorter(order) => "", :counts => ""; 
+            stack=:variable, 
+            color=:variable => ""
+          ) * visual(BarPlot)
+    
+    draw(plt; legend=(;position=:bottom), axis=(;xticklabelrotation=1))
+end
+
+plot_outcome_judge(df)
+```
+
+## Data
+
+```{julia}
+#| echo: false
+df
+```
+
+:::
+
+There definitely seems to be variation in outcome across different technologies; compare, e.g., G06 (computing, calculating, counting), with a 7% dismissal rate, and B29 (working of plastics), with a 37% dismissal rate.
+
+
+### Is there variation across panel compositions?
+
+In general, this is hard to answer with the data at hand because we don't observe individual decisions but only the collective outcome.
+
+The best we can do is look at distinct combinations of judges:
+
+```{julia}
+df = sort!(map(summarize_outcome, group(decisions) do ds
+    js = label.(first(judges(ds), 3))
+    js = join(Set(js), ", ")
+end); rev=true) |> DataFrame;
+```
+
+::: {.panel-tabset}
+
+## Plot
+
+```{julia}
+#| code-fold: true
+
+function plot_outcome_composition(df)
+    outcomes = [:dismissed, :partial, :annulled]
+    dflong = first(df, 15)
+    dflong = DataFrames.stack(dflong, outcomes)
+    dflong.value = dflong.value .* dflong.n
+
+    plt = data(dflong) * mapping(
+            :keys => "", :value => ""; 
+            stack=:variable, 
+            color=:variable => ""
+          ) * visual(BarPlot)
+    
+    draw(plt; legend=(;position=:bottom), axis=(;xticklabelrotation=1.4))
+end
+
+plot_outcome_composition(df)
+```
+
+## Data
+
+```{julia}
+#| echo: false
+df
+```
+
+:::
+
+
+### Does a judge's decision making change over time?
+
+- GP logistic regression for each judge (maybe brms?)
+
+
+### Is there still variation between judges when controlling for the other factors?
+
+
