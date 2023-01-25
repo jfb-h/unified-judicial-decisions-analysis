@@ -12,17 +12,17 @@ execute:
 
 ## Judicial Decision Making in Patent Litigation
 
-In the legal and political science literatures, there has been an ongoing debate about what drives judicial decision making for more than 100 years (Cross 2003). The *legalist* (or *legal rationalist* or *legal formalist*) tradition sees the judge as a vehicle executing the law. The *realist* (or *behaviouralist*) tradition sees the law as incomplete and leaving decision making degrees of freedom to judges, which respond to attitudinal preferences or strategic incentives (Segal 2001, Epstein & Knight 2013). This debate is strongly biased towards the USA and especially its Supreme Court, where politically controversial cases and partisan decision making are frequent.
+In the legal and political science literatures, there has been an ongoing debate about what drives judicial decision making for more than 100 years (Cross 2003). The *legalist* (or *legal rationalist* or *legal formalist*) tradition sees the judge as a vehicle executing the law. The *realist* (or *behaviouralist*) tradition sees the law as incomplete and as leaving decision making degrees of freedom to judges. Judges, then, respond to attitudinal preferences or strategic incentives (Segal 2001, Epstein & Knight 2013). This debate is strongly biased towards the USA and especially its Supreme Court, where politically controversial cases and partisan decision making are frequent.
 
-While the realist approach has demonstrated its relevance in the setting of politicized US courts in many empirical studies (e.g. Segal & Cover 1989), patent law differs from other fields of law due to its highly technical nature. To come to a satisfactory conclusion in a patent dispute, in-depth technical knowledge relating to the case at hand is usually required in addition to legal knowledge. These differences also change the appropriateness of legalist and realist accounts of judicial decision making. At least three factors favour a legalist model of decision making in patent litigation: (1) a complete description of the facts of the case exists in the form of the patent document, (2) there are standard legal techniques (such as the fictious 'person skilled in the art' or criteria for validity) to derive a conclusion from the facts of the case and the law, and (3) there are less obvious political incentives for the judiciary in the outcomes of most patent disputes.
+While the realist approach has demonstrated its relevance in the setting of politicized US courts in many empirical studies (e.g. Segal & Cover 1989), patent law differs from other fields of law due to its highly technical nature. To come to a satisfactory conclusion in a patent dispute, in-depth technical knowledge relating to the case at hand is usually required in addition to legal knowledge. These differences also change the appropriateness of legalist and realist accounts of judicial decision making. At least three factors favour a legalist model of decision making in patent litigation: (1) a complete description of the facts of the case exists in the form of the patent document, (2) there are standard legal techniques (such as the fictious 'person skilled in the art' or criteria for validity) to derive a conclusion from the facts of the case and the law, and (3) the existence of political incentives for the judiciary in the outcomes of most patent disputes is less obvious. Given such technical, legal, and procedural constraints, a reasonable expectation is that judicial degrees of freedom are minimal: 
 
 > $H_{l}$: Under a legalist model of judicial decision making, there should be no systematic between-judge variation across comparable cases.
 
-Despite ostensibly transparent criteria and comprehensive technical information, the reality of judicial decision making in the context of patent litigation is often different: First, there is often deliberate uncertainty in the technical specification contained in the patent document to broaden its scope of protection (Mullally 2009). Second, specific legal constructions are often applied differently in different legal contexts or schools of thought, such as was the case with the 'doctrine of equivalents' in the famous Epilady controversy (Hatter 1994). And third, patent judges have been found to diverge in their substantive interpretations of what constitutes a patent (Lazega et al. 2017). 
+Despite ostensibly transparent criteria and comprehensive technical information, the reality of judicial decision making in the context of patent litigation is however often different: First, there is often deliberate uncertainty in the technical specification contained in the patent document to broaden its scope of protection (Mullally 2009), making the decision less formulaic. Second, specific legal constructions are often applied differently in different legal contexts or schools of thought, such as was the case with the 'doctrine of equivalents' in the famous Epilady controversy (Hatter 1994). And third, patent judges have been found to diverge in their substantive interpretations of what constitutes a patent (Lazega et al. 2017). Given these factors, an alternative hypothesis
 
 > $H_{r}$: Under a realist model of judicial decision making, there are judge degrees of freedom, allowing for between-judge variation in decision making even for comparable cases.
 
-The goal of this paper is to empirically test $H_l$ against $H_r$ within a single court, the German Federal Patent Court. A core task is then to define what constitutes 'comparable cases'. We here investigate three  factors to control for: First, time, as the observation period stretches over a period of relative turmoil in the global patenting system, which might have a systematic impact on case outcomes. Second, technology classification, as different technologies might be subject to different industry dynamics, which in turn might tip the scales systematically in the plaintiff's or defendant's direction. And third, senate affiliation, as specific senates might have developed their own explicit or implicit rules. 
+The goal of this paper is to empirically test $H_l$ against $H_r$ within a single court, the German Federal Patent Court. Given this goal, a core task is to define what constitutes 'comparable cases'. We here investigate three factors to control for: First, time, as the observation period stretches over a period of relative turmoil in the global patenting system, which might have a systematic impact on case outcomes. Second, technology classification, as different technologies might be subject to different industry dynamics, which in turn might tip the scales systematically in the plaintiff's or defendant's direction. And third, senate affiliation, as specific senates might have developed their own explicit or implicit rules. 
 
 
 ## Data on Validity Cases at the Bundespatentgericht
@@ -34,7 +34,7 @@ using Dictionaries, SplitApplyCombine
 using DataFramesMeta, Dates
 ```
 
-The data explored here were obtained from the [BPatG online repository](http://juris.bundespatentgericht.de/cgi-bin/rechtsprechung/list.py?Gericht=bpatg&Art=en&Sort=12288&Datum=Aktuell) containing all of the court's decisions since 2000. Initially, all 30,000 documents were downloaded. Among these, nullity decisions were selected and filtered down to only verdict documents (excluding, e.g., additional decisions on compensation etc.). This left around 1,200 documents, from which key metadata were extracted.
+The data explored here were obtained from the [BPatG online repository](http://juris.bundespatentgericht.de/cgi-bin/rechtsprechung/list.py?Gericht=bpatg&Art=en&Sort=12288&Datum=Aktuell) containing all of the court's decisions since 2000. Initially, all 30,000 documents were downloaded. Among these, nullity decisions were selected and filtered down to only verdict documents (excluding, e.g., additional decisions on compensation etc.). This left around 1,200 documents, from which we extracted key metadata.
 
 ```{julia}
 decisions = Model.loaddata("../data/processed/json_augmented");
@@ -127,7 +127,7 @@ df
 
 :::
 
-Looking at outcomes by year, the most striking feature is missing data for 2006 and partially 2007, which is due to judge names not being recorded in the decision documents for that period. Furthermore, there seem to be fewer cases per year since about 2013. (TODO: In accordance with reporting?)
+Looking at outcomes by year, the most striking feature is missing data for 2006 and partially 2007, which is due to judge names not being recorded in the decision documents for that period. Furthermore, there seem to be fewer cases per year since about 2013. (TODO: Is this in accordance with reporting?)
 In terms of variation over time, there is a slight indication of less dismissals in recent years but the trend is not very strong.  
 
 
@@ -169,6 +169,9 @@ df
 ```
 
 :::
+
+There is some slight variation in case outcomes across senates, with about a 7 percentage point difference in dismissal rates between, e.g., senates 3 and 4.
+
 
 
 ### Is there variation between judges?
@@ -319,7 +322,10 @@ function plot_outcome_composition(df)
             color=:variable => ""
           ) * visual(BarPlot)
     
-    draw(plt; legend=(;position=:bottom), axis=(;xticklabelrotation=1.4))
+    draw(plt; 
+         legend=(;position=:bottom), 
+         axis=(;xticklabelrotation=1.4),
+         figure=(;resolution=(700, 700)))
 end
 
 plot_outcome_composition(df)
@@ -337,8 +343,112 @@ df
 
 ### Does a judge's decision making change over time?
 
-- GP logistic regression for each judge (maybe brms?)
+```{julia}
+#| code-fold: true
+#| code-summary: Gaussian process model
 
+using ApproximateGPs
+using Distributions
+using LinearAlgebra
+using LogExpFunctions: logistic, softplus, invsoftplus
+using Zygote
+using Optim
+
+function build_latent_gp(θ)
+    variance, lengthscale = softplus.(θ)
+    kernel = variance * with_lengthscale(SqExponentialKernel(), lengthscale)
+    LatentGP(GP(kernel), BernoulliLikelihood() , 1e-8)
+end
+
+function optimize_hyperparams(make_f, x, y; θ_init=invsoftplus.([1, 0.05]))
+    objective = build_laplace_objective(make_f, x, y)
+    grad(θ) = only(Zygote.gradient(objective, θ))
+    result = Optim.optimize(objective, grad, θ_init, LBFGS(); inplace=false)
+    objective, result
+end
+
+function posterior_optimize(x, y)
+    objective, optimized = optimize_hyperparams(build_latent_gp, x, y)
+    lf_opt = build_latent_gp(optimized.minimizer)
+    posterior(LaplaceApproximation(;f_init=objective.cache.f), lf_opt(x), y)
+end
+
+function simulate()
+    X = range(0, 23.5; length=48)
+    f(x) = 3 * sin(10 + 0.6x) + sin(0.1x) - 1
+    ps = logistic.(f.(X)) 
+    Y = [rand(Bernoulli(p)) for p in ps]
+    X, Y, f
+end
+
+function plot_data!(ax, x, y; true_f = nothing)
+    scatter!(ax, x, y)
+    !isnothing(true_f) && lines!(ax, x, f)
+end
+function plot_data(x, y; true_f=nothing)
+    fig = Figure()
+    ax = Axis(fig[1,1])
+    plot_data!(ax, x, y; true_f)
+    fig
+end
+
+function plot_posterior!(ax, x, y, xgrid, fpost; true_f=nothing)
+    fx = fpost(xgrid, 1e-8)
+    fsamples = rand(fx, 100)
+    foreach(eachcol(fsamples)) do y
+        lines!(ax, xgrid, logistic.(y); color=:grey80)
+    end
+    lines!(ax, xgrid, map(logistic ∘ mean, eachrow(fsamples)); color=:red, linewidth=2)
+    plot_data!(ax, x, y; true_f)
+    fig
+end
+function plot_posterior(x, y, xgrid, fpost; true_f=nothing)
+    fig = Figure()
+    ax = Axis(fig[1,1])
+    plot_posterior!(ax,x, y, xgrid, fpost; true_f)
+    fig
+end;
+```
+
+
+```{julia}
+#| code-fold: true
+#| code-summary: Plots
+
+using Dates
+
+js = [
+        "Voit", "Schuster", 
+        "Gutermuth", "Schramm", 
+        "Engels", "Sredl",
+        "Meinhardt", "Hellebrand", 
+        "Schwendy", "Rauch"
+     ]
+
+fig = Figure(resolution=(700, 1000))
+lay = CartesianIndices((5,2))
+
+for (i, j) in enumerate(js)
+    ds = filter(decisions) do d
+        label(first(judges(d))) == j
+    end
+
+    x = [Dates.days(date(d) - minimum(date, ds)) for d in ds] ./ 365
+    xnorm = (x .- minimum(x)) ./ maximum(x)
+    y = (id ∘ outcome).(ds)
+
+    #post = posterior_optimize(xnorm, y)
+    make_f = build_latent_gp([1.0, .01])
+    post = posterior(LaplaceApproximation(), make_f(xnorm), y)
+    
+    ax = Axis(fig[Tuple(lay[i])...]; title = j)
+    plot_posterior!(ax, xnorm, y, range(0, maximum(xnorm), 100), post)
+end
+
+fig
+```
+
+While for some judges there seems to be a tendency towards an increased nullification rate over their activity period (e.g, Gutermuth, Engels, Meinhardt), this is not a general trend and statistically quite uncertain.
 
 ### Is there still variation between judges when controlling for the other factors?
 
