@@ -16,6 +16,7 @@ using LinearAlgebra
 using Distributions
 import ReverseDiff
 using LogDensityProblems
+using LogDensityProblemsAD
 using TransformVariables
 using TransformedLogDensities
 using DynamicHMC

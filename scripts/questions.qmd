@@ -22,7 +22,7 @@ Despite ostensibly transparent criteria and comprehensive technical information,
 
 > $H_{r}$: Under a realist model of judicial decision making, there are judge degrees of freedom, allowing for between-judge variation in decision making even for comparable cases.
 
-The goal of this paper is to empirically test $H_l$ against $H_r$ within a single court, the German Federal Patent Court. Given this goal, a core task is to define what constitutes 'comparable cases'. We here investigate three factors to control for: First, time, as the observation period stretches over a period of relative turmoil in the global patenting system, which might have a systematic impact on case outcomes. Second, technology classification, as different technologies might be subject to different industry dynamics, which in turn might tip the scales systematically in the plaintiff's or defendant's direction. And third, senate affiliation, as specific senates might have developed their own explicit or implicit rules. 
+The goal of this paper is to empirically test $H_l$ against $H_r$ within a single court, the German Federal Patent Court. Given this goal, a core task is to define what constitutes 'comparable cases'. We here investigate three factors to control for: First, we control for the timepoint of the decision, as the observation period stretches over a period of relative turmoil in the global patenting system, which might have a systematic impact on case outcomes. Second, technology classification, as different technologies might be subject to different industry dynamics, which in turn might tip the scales systematically in the plaintiff's or defendant's direction. And third, senate affiliation, as specific senates might have developed their own explicit or implicit rules. 
 
 
 ## Data on Validity Cases at the Bundespatentgericht
@@ -118,6 +118,85 @@ end
 plot_outcome_year(df)
 ```
 
+```{julia}
+#| code-fold: true
+#| code-summary: Gaussian process model
+
+using ApproximateGPs
+using Distributions
+using LinearAlgebra
+using LogExpFunctions: logistic, softplus, invsoftplus
+using Zygote
+using Optim
+
+function build_latent_gp(θ)
+    variance, lengthscale = softplus.(θ)
+    kernel = variance * with_lengthscale(SqExponentialKernel(), lengthscale)
+    LatentGP(GP(kernel), BernoulliLikelihood() , 1e-8)
+end
+
+function optimize_hyperparams(make_f, x, y; θ_init=invsoftplus.([1, 0.05]))
+    objective = build_laplace_objective(make_f, x, y)
+    grad(θ) = only(Zygote.gradient(objective, θ))
+    result = Optim.optimize(objective, grad, θ_init, LBFGS(); inplace=false)
+    objective, result
+end
+
+function posterior_optimize(x, y)
+    objective, optimized = optimize_hyperparams(build_latent_gp, x, y)
+    lf_opt = build_latent_gp(optimized.minimizer)
+    posterior(LaplaceApproximation(;f_init=objective.cache.f), lf_opt(x), y)
+end
+
+function simulate()
+    X = range(0, 23.5; length=48)
+    f(x) = 3 * sin(10 + 0.6x) + sin(0.1x) - 1
+    ps = logistic.(f.(X)) 
+    Y = [rand(Bernoulli(p)) for p in ps]
+    X, Y, f
+end
+
+function plot_data!(ax, x, y; true_f = nothing)
+    scatter!(ax, x, y)
+    !isnothing(true_f) && lines!(ax, x, f)
+end
+function plot_data(x, y; true_f=nothing)
+    fig = Figure()
+    ax = Axis(fig[1,1])
+    plot_data!(ax, x, y; true_f)
+    fig
+end
+
+function plot_posterior!(ax, x, y, xgrid, fpost; true_f=nothing)
+    fx = fpost(xgrid, 1e-8)
+    fsamples = rand(fx, 100)
+    foreach(eachcol(fsamples)) do y
+        lines!(ax, xgrid, logistic.(y); color=:grey80)
+    end
+    lines!(ax, xgrid, map(logistic ∘ mean, eachrow(fsamples)); color=:red, linewidth=2)
+    plot_data!(ax, x, y; true_f)
+end
+function plot_posterior(x, y, xgrid, fpost; true_f=nothing)
+    fig = Figure()
+    ax = Axis(fig[1,1])
+    plot_posterior!(ax,x, y, xgrid, fpost; true_f)
+    fig
+end;
+```
+
+```{julia}
+#| code-fold: true
+#| code-summary: plotting code
+
+x = [Dates.days(date(d) - minimum(date, decisions)) for d in decisions] ./ 365
+y = (id ∘ outcome).(decisions)
+
+#post = posterior_optimize(x, y)
+make_f = build_latent_gp([1.0, 5.0])
+post = posterior(LaplaceApproximation(), make_f(x), y)
+plot_posterior(x, y, range(0, maximum(x), 100), post)
+```
+
 ## Data
 
 ```{julia}
@@ -128,7 +207,7 @@ df
 :::
 
 Looking at outcomes by year, the most striking feature is missing data for 2006 and partially 2007, which is due to judge names not being recorded in the decision documents for that period. Furthermore, there seem to be fewer cases per year since about 2013. (TODO: Is this in accordance with reporting?)
-In terms of variation over time, there is a slight indication of less dismissals in recent years but the trend is not very strong.  
+In terms of variation over time, there are slightly less dismissals in recent years.  
 
 
 ### Is there variation between senates?
@@ -242,6 +321,9 @@ df
 
 :::
 
+Looking at some of the most active judges, there are relatively large differences in dissmissal rates; Consider as extreme cases e.g. Guth, with only 16% dismissals out of 80 cases vs. Huber, with about 42% dismissals out of 86 cases. 
+
+
 ### Is there variation betweeen technologies?
 
 ```{julia}
@@ -287,14 +369,10 @@ df
 
 :::
 
-There definitely seems to be variation in outcome across different technologies; compare, e.g., G06 (computing, calculating, counting), with a 7% dismissal rate, and B29 (working of plastics), with a 37% dismissal rate.
+There is some evidence for variation in outcome across different technologies; compare, e.g., G06 (computing, calculating, counting), with a 7% dismissal rate, and B29 (working of plastics), with a 37% dismissal rate.
 
 
 ### Is there variation across panel compositions?
-
-In general, this is hard to answer with the data at hand because we don't observe individual decisions but only the collective outcome.
-
-The best we can do is look at distinct combinations of judges:
 
 ```{julia}
 df = sort!(map(summarize_outcome, group(decisions) do ds
@@ -340,82 +418,39 @@ df
 
 :::
 
+In general, this is hard to answer with the data at hand because we don't observe individual decisions but only the collective outcome; The best we can do is look at distinct combinations of judges. When picking only the first three judges for each case and looking for all cases handled by this trio, some differences in decision outcomes become visible. However, case numbers are generally too low for conclusive results.
+
 
 ### Does a judge's decision making change over time?
-
-```{julia}
-#| code-fold: true
-#| code-summary: Gaussian process model
-
-using ApproximateGPs
-using Distributions
-using LinearAlgebra
-using LogExpFunctions: logistic, softplus, invsoftplus
-using Zygote
-using Optim
-
-function build_latent_gp(θ)
-    variance, lengthscale = softplus.(θ)
-    kernel = variance * with_lengthscale(SqExponentialKernel(), lengthscale)
-    LatentGP(GP(kernel), BernoulliLikelihood() , 1e-8)
-end
-
-function optimize_hyperparams(make_f, x, y; θ_init=invsoftplus.([1, 0.05]))
-    objective = build_laplace_objective(make_f, x, y)
-    grad(θ) = only(Zygote.gradient(objective, θ))
-    result = Optim.optimize(objective, grad, θ_init, LBFGS(); inplace=false)
-    objective, result
-end
-
-function posterior_optimize(x, y)
-    objective, optimized = optimize_hyperparams(build_latent_gp, x, y)
-    lf_opt = build_latent_gp(optimized.minimizer)
-    posterior(LaplaceApproximation(;f_init=objective.cache.f), lf_opt(x), y)
-end
-
-function simulate()
-    X = range(0, 23.5; length=48)
-    f(x) = 3 * sin(10 + 0.6x) + sin(0.1x) - 1
-    ps = logistic.(f.(X)) 
-    Y = [rand(Bernoulli(p)) for p in ps]
-    X, Y, f
-end
-
-function plot_data!(ax, x, y; true_f = nothing)
-    scatter!(ax, x, y)
-    !isnothing(true_f) && lines!(ax, x, f)
-end
-function plot_data(x, y; true_f=nothing)
-    fig = Figure()
-    ax = Axis(fig[1,1])
-    plot_data!(ax, x, y; true_f)
-    fig
-end
-
-function plot_posterior!(ax, x, y, xgrid, fpost; true_f=nothing)
-    fx = fpost(xgrid, 1e-8)
-    fsamples = rand(fx, 100)
-    foreach(eachcol(fsamples)) do y
-        lines!(ax, xgrid, logistic.(y); color=:grey80)
-    end
-    lines!(ax, xgrid, map(logistic ∘ mean, eachrow(fsamples)); color=:red, linewidth=2)
-    plot_data!(ax, x, y; true_f)
-    fig
-end
-function plot_posterior(x, y, xgrid, fpost; true_f=nothing)
-    fig = Figure()
-    ax = Axis(fig[1,1])
-    plot_posterior!(ax,x, y, xgrid, fpost; true_f)
-    fig
-end;
-```
-
 
 ```{julia}
 #| code-fold: true
 #| code-summary: Plots
 
 using Dates
+
+function plot_judges(decisions, js)
+    fig = Figure(resolution=(700, 1000))
+    lay = CartesianIndices((5,2))
+
+    for (i, j) in enumerate(js)
+        ds = filter(decisions) do d
+            label(first(judges(d))) == j
+        end
+
+        x = [Dates.days(date(d) - minimum(date, ds)) for d in ds] ./ 365
+        y = (id ∘ outcome).(ds)
+
+        #post = posterior_optimize(x, y)
+        make_f = build_latent_gp([1.0, 4.0])
+        post = posterior(LaplaceApproximation(), make_f(x), y)
+        
+        ax = Axis(fig[Tuple(lay[i])...]; title = j)
+        plot_posterior!(ax, x, y, range(0, maximum(x), 100), post)
+    end
+
+    fig
+end
 
 js = [
         "Voit", "Schuster", 
@@ -425,31 +460,56 @@ js = [
         "Schwendy", "Rauch"
      ]
 
-fig = Figure(resolution=(700, 1000))
-lay = CartesianIndices((5,2))
-
-for (i, j) in enumerate(js)
-    ds = filter(decisions) do d
-        label(first(judges(d))) == j
-    end
-
-    x = [Dates.days(date(d) - minimum(date, ds)) for d in ds] ./ 365
-    xnorm = (x .- minimum(x)) ./ maximum(x)
-    y = (id ∘ outcome).(ds)
-
-    #post = posterior_optimize(xnorm, y)
-    make_f = build_latent_gp([1.0, .01])
-    post = posterior(LaplaceApproximation(), make_f(xnorm), y)
-    
-    ax = Axis(fig[Tuple(lay[i])...]; title = j)
-    plot_posterior!(ax, xnorm, y, range(0, maximum(xnorm), 100), post)
-end
-
-fig
+plot_judges(decisions, js)
 ```
 
 While for some judges there seems to be a tendency towards an increased nullification rate over their activity period (e.g, Gutermuth, Engels, Meinhardt), this is not a general trend and statistically quite uncertain.
 
 ### Is there still variation between judges when controlling for the other factors?
 
+```{julia}
+#| code-fold: true
 
+using Arrow
+
+model = MixedMembershipModel(decisions)
+
+post_stored = "../data/derivative/inference/posterior_mixed_membership.arrow"
+samples = if isfile(post_stored)
+    Arrow.Table(post_stored) |> DataFrame
+else
+    post = Model.sample(model, 1000, 4)
+    ess, rhat, treestats = Model.checkconvergence(post)
+    println(ess); println(rhat); println(treestats)
+    Model._post(post)
+end
+
+function plot_mixed_membership_model(model, samples, decisions)
+    empirical_mean = mean(id ∘ outcome, decisions)
+
+    fig = Figure(resolution=(700, 1000))
+
+    ax_pred = Axis(fig[1,1:3]; title="Probability of (partial) annullment by case")
+    ax_time = Axis(fig[2,1:3]; title="Year effects")
+    ax_tech = Axis(fig[3,1:3]; title="Technology effects")
+    ax_juds = Axis(fig[4,1:3]; title="Judge effects")
+
+    Model.errorplot!(ax_pred, Prediction(), model, samples; sort=true); hlines!(ax_pred, empirical_mean; color = :red)
+    Model.errorplot!(ax_time, Effect(), samples.zt .* samples.σt; sigma=1)
+    Model.errorplot!(ax_tech, Effect(), samples.zc .* samples.σc; sigma=1)
+    Model.errorplot!(ax_juds, Effect(), samples.zj .* samples.σj; sigma=1)
+
+    axt = Axis(fig[5,1]; title="Year effect s.d.")
+    axc = Axis(fig[5,2]; title="Technology effect s.d.")
+    axj = Axis(fig[5,3]; title="Judge effect s.d.")
+
+    density!(axt, samples.σt; color=:grey80)
+    density!(axc, samples.σc; color=:grey80)
+    density!(axj, samples.σj; color=:grey80)
+
+    fig
+end
+
+plot_mixed_membership_model(model, samples, decisions)
+```
+In a mixed membership model controlling for time and patent technology, judge effects persist. Using the standard deviation of the varying judge effects as a test quantity, we would reject null hypothesis in line with the legalist model of decision making.
