@@ -51,7 +51,8 @@ Sample from the posterior distribution of `problem` with the sampling
 algorithm specified by the first argument, taking `iter` samples.
 If the first argument is omitted, NUTS via `DynamicHMC`` is used by default.
 """
-function sample(::NUTS, problem::AbstractDecisionModel, iter::Integer, chains::Integer=4; backend=:ForwardDiff)
+function sample(::NUTS, problem::AbstractDecisionModel, iter::Integer, chains::Integer=4; 
+                backend=:ForwardDiff, reporter=NoProgressReport())     
     t = transformation(problem)
     ℓ = TransformedLogDensity(t, problem)
     ∇ℓ = if backend == :ForwardDiff
@@ -61,8 +62,8 @@ function sample(::NUTS, problem::AbstractDecisionModel, iter::Integer, chains::I
     else
         throw(ArgumentError("Unknown AD backend."))
     end
-    res = [mcmc_with_warmup(Random.GLOBAL_RNG, ∇ℓ, iter; reporter=ProgressMeterReport()) for _ in 1:chains]
-    post = TransformVariables.transform.(t, eachcol(pool_posterior_matrices(res)))
+    res = [mcmc_with_warmup(Random.GLOBAL_RNG, ∇ℓ, iter; reporter) for _ in 1:chains]
+    post = StructArray(TransformVariables.transform.(t, eachcol(pool_posterior_matrices(res))))
     stat = [(tree_statistics=r.tree_statistics, κ=r.κ, ϵ=r.ϵ) for r in res]
     DynamicHMCPosterior(post, stat, res)
 end
