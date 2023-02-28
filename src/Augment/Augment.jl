@@ -30,8 +30,8 @@ const PATENTSFILE = "data/augment/patent_nr_cpc.csv"
 const JSONDIR = "data/processed/json"
 const AUGMENTDIR = "data/processed/json_augmented"
 
-const DBIDR = "D:/Databases/Patents/data/patstat_applications.db"
-const PATSTATDIR = "D:/Databases/PATSTAT/CSV"
+const DBDIR = "D:/Databases/Bundespatentgericht/patstat_applications.db"
+const PATSTATDIR = "D:/Databases/PATSTAT/2019/CSV"
 
 include("clean_and_augment.jl")
 include("manual_cleaning.jl")

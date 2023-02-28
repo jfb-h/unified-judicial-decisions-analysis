@@ -8,6 +8,7 @@ function init_db(dbpath=DBDIR, csvdir=PATSTATDIR)
 
     app = "CREATE TABLE IF NOT EXISTS applications (
         appln_id INTEGER NOT NULL UNIQUE PRIMARY KEY,
+        appln_filing_date TEXT,
         appln_auth TEXT NOT NULL,
         appln_nr TEXT,
         appln_kind TEXT
@@ -20,6 +21,7 @@ function init_db(dbpath=DBDIR, csvdir=PATSTATDIR)
 
     pub = "CREATE TABLE IF NOT EXISTS publications (
         pat_publn_id INTEGER NOT NULL UNIQUE PRIMARY KEY,
+        publn_date TEXT,
         publn_auth TEXT NOT NULL,
         publn_nr TEXT,
         appln_id INTEGER NOT NULL REFERENCES applications(appln_Id)
@@ -29,13 +31,13 @@ function init_db(dbpath=DBDIR, csvdir=PATSTATDIR)
 
     # load data from csv
 
-    appfiles = ["tls201_part01.txt", "tls201_part02.txt", "tls201_part03.txt"]
-    cpcfiles = ["tls224_part01.txt", "tls224_part02.txt"]
-    pubfiles = ["tls211_part01.txt"]
+    appfiles = ["tls201_part01.csv", "tls201_part02.csv", "tls201_part03.csv"]
+    cpcfiles = ["tls224_part01.csv", "tls224_part02.csv"]
+    pubfiles = ["tls211_part01.csv"]
 
-    appcols = ["appln_id", "appln_auth", "appln_nr", "appln_kind"]
+    appcols = ["appln_id", "appln_filing_date", "appln_auth", "appln_nr", "appln_kind"]
     cpccols = ["appln_id", "cpc_class_symbol"]
-    pubcols = ["pat_publn_id", "publn_auth", "publn_nr", "appln_id"]
+    pubcols = ["pat_publn_id", "publn_date", "publn_auth", "publn_nr", "appln_id"]
 
     for file in appfiles
         @info "loading $file from csv"
@@ -96,7 +98,7 @@ function get_cpc_from_publication(con, pubnr::AbstractString)
     nr = pubnr[3:end]
 
     stmt = """
-    SELECT DISTINCT publn_auth, publn_nr, cpc_class_symbol FROM publications
+    SELECT DISTINCT publn_auth, publn_nr, publn_date, cpc_class_symbol FROM publications
     LEFT JOIN cpc ON publications.appln_id = cpc.appln_id
     WHERE publn_auth = ? AND publn_nr = ?
     """
