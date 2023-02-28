@@ -25,12 +25,12 @@ using DBInterface
 using DataFrames
 
 const JUDGESFILE = "data/augment/judges_manual_cleaned.csv"
-const PATENTSFILE = "data/augment/patent_nr_cpc.csv"
+const PATENTSFILE = "data/augment/patentinfo.csv"
 
 const JSONDIR = "data/processed/json"
 const AUGMENTDIR = "data/processed/json_augmented"
 
-const DBDIR = "D:/Databases/Bundespatentgericht/patstat_applications.db"
+const DBDIR = "E:/patstat_applications.db"
 const PATSTATDIR = "D:/Databases/PATSTAT/2019/CSV"
 
 include("clean_and_augment.jl")

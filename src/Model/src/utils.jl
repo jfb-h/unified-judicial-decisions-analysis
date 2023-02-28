@@ -31,7 +31,7 @@ function loaddata(dir::AbstractString)
     map(enumerate(json)) do (i, j)
         outcome = Outcome(OUTCOMES[j.outcome], j.outcome)
         senate = Senate(j.senate, "$(j.senate). Senate")
-        patent = Patent(j.patent.nr, j.patent.cpc)
+        patent = Patent(j.patent.nr, Date(j.patent.date), j.patent.cpc)
         date = Date(j.date)
         judges = map(j.judges) do j
             Judge(judgepool[j], j)

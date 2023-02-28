@@ -50,35 +50,38 @@ end
     Patent
 
 Patent for which a validity decision is to be made. Contains the patent number issued 
-by the respective authority (`auth` and `id`) and a vector of CPC symbols.
+by the respective authority (`auth` and `id`), the earliest publication date, and a vector of CPC symbols.
 """
 struct Patent
     nr::String
+    date::Date
     cpc::Vector{String}
 end
 
-Patent(s::AbstractString, c::Nothing) = Patent(s, String[])
-Patent(s::AbstractString, c::AbstractArray) = Patent(s, string.(filter(!isnothing, c)))
+Patent(s::AbstractString, d::Union{Date, Nothing}, c::Nothing) = Patent(s, d, String[])
+Patent(s::AbstractString, d::Union{Date, Nothing}, c::AbstractArray) = Patent(s, d, string.(filter(!isnothing, c)))
 
 id(x::Patent) = x.nr
 cpc(x::Patent) = x.cpc
+date(x::Patent) = x.date
 subclass(x::Patent) = first.(x.cpc, 4) |> unique
 class(x::Patent) = first.(x.cpc, 3) |> unique
 section(x::Patent) = first.(x.cpc, 1) |> unique
+office(x::Patent) = first(id(x), 2)
 
 """
-    Decision
+Decision
 
 Metadata for a judicial decisions on patent nullity.
-
-# Fields
-- id::Int : Integer id of the decision
-- label::String : Official id as found on the decision document
-- patent::String : id of the patent
-- outcome::Outcome : decision outcome
-- date::Date : date of publication of the decision
-- senate::Senate : senate making the decision
-- judges::Vector{Judge} : panel of judges involved in the decision
+    
+    # Fields
+    - id::Int : Integer id of the decision
+    - label::String : Official id as found on the decision document
+    - patent::String : id of the patent
+    - outcome::Outcome : decision outcome
+    - date::Date : date of publication of the decision
+    - senate::Senate : senate making the decision
+    - judges::Vector{Judge} : panel of judges involved in the decision
 """
 struct Decision
     id::Int
@@ -92,6 +95,8 @@ end
 
 id(x) = x.id
 label(x) = x.label
+
+patentage(d::Decision) = (date(d) - date(patent(d))).value / 365
 
 outcome(x::Decision) = x.outcome
 patent(x::Decision) = x.patent

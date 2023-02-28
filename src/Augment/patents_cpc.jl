@@ -103,13 +103,14 @@ function get_cpc_from_publication(con, pubnr::AbstractString)
     WHERE publn_auth = ? AND publn_nr = ?
     """
 
-    res = DBInterface.execute(con, stmt, (auth, nr))
-    df = DataFrame(res)
-    select(df, [:publn_auth, :publn_nr] => ByRow(*) => :publn_nr, :cpc_class_symbol => :cpc)
+    res = DBInterface.execute(con, stmt, (auth, nr)).df
+    #df = DataFrame(res)
+    select(res, [:publn_auth, :publn_nr] => ByRow(*) => :publn_nr, :cpc_class_symbol => :cpc)
 end
 
 function make_patentinfo(outfile=PATENTSFILE, db=DBDIR)
-    con = SQLite.DB(db)
+    # con = SQLite.DB(db)
+    con = DBInterface.connect(DuckDB.DB, db)
 
     cleanfun(p) = startswith(p, r"DE|EP") ? p : "DE" * p
     patnrs = CSV.read("data/patent_nr.csv", DataFrame)
