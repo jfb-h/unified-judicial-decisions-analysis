@@ -45,7 +45,7 @@ end
 struct NUTS <: AbstractInferenceAlgorithm end
 
 """
-    sample(DynamicHMCPosterior(), problem, iter)
+    sample(AbstractInferenceAlgorithm(), problem, iter)
 
 Sample from the posterior distribution of `problem` with the sampling 
 algorithm specified by the first argument, taking `iter` samples.
@@ -62,7 +62,8 @@ function sample(::NUTS, problem::AbstractDecisionModel, iter::Integer, chains::I
     else
         throw(ArgumentError("Unknown AD backend."))
     end
-    res = [mcmc_with_warmup(Random.GLOBAL_RNG, ∇ℓ, iter; reporter) for _ in 1:chains]
+    rng = Random.default_rng()
+    res = ThreadsX.map(_ -> mcmc_with_warmup(rng, ∇ℓ, iter; reporter), 1:chains)
     post = StructArray(TransformVariables.transform.(t, eachcol(pool_posterior_matrices(res))))
     stat = [(tree_statistics=r.tree_statistics, κ=r.κ, ϵ=r.ϵ) for r in res]
     DynamicHMCPosterior(post, stat, res)
