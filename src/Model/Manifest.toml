@@ -2,7 +2,7 @@
 
 julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "3cafdf764995a161b6af55cce07e9c56d245aa71"
+project_hash = "1fb12d886b402dbca05096c1c5254a15bc86e90f"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -1360,11 +1360,6 @@ version = "0.1.1"
 [[deps.Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-
-[[deps.ThreadTools]]
-git-tree-sha1 = "e335e40d393ccc1e1aa8087632989e856db988e0"
-uuid = "dbf13d8f-d36e-4350-8970-f3a99faba1a8"
-version = "0.2.0"
 
 [[deps.ThreadsX]]
 deps = ["ArgCheck", "BangBang", "ConstructionBase", "InitialValues", "MicroCollections", "Referenceables", "Setfield", "SplittablesBase", "Transducers"]

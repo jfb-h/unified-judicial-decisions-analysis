@@ -62,8 +62,7 @@ function sample(::NUTS, problem::AbstractDecisionModel, iter::Integer, chains::I
     else
         throw(ArgumentError("Unknown AD backend."))
     end
-    rng = Random.default_rng()
-    res = ThreadTools.tmap1(_ -> mcmc_with_warmup(rng, ∇ℓ, iter; reporter), 1:chains)
+    res = ThreadsX.map(_ -> mcmc_with_warmup(Random.default_rng(), ∇ℓ, iter; reporter), 1:chains)
     post = StructArray(TransformVariables.transform.(t, eachcol(pool_posterior_matrices(res))))
     stat = [(tree_statistics=r.tree_statistics, κ=r.κ, ϵ=r.ϵ) for r in res]
     DynamicHMCPosterior(post, stat, res)

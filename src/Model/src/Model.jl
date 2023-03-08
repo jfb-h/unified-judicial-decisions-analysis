@@ -14,7 +14,7 @@ using StructArrays
 using FillArrays
 using Random
 using LinearAlgebra
-using ThreadTools
+using ThreadsX
 
 using Distributions
 using LogDensityProblems
