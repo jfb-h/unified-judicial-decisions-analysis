@@ -32,12 +32,12 @@ function BPatGModel(decisions::Vector{Decision}; levelfun=class)
     n_cpcs = length.(cpcs)
     N_cpcs = maximum(reduce(vcat, cpcs))
     # senates
-    senates = map(id ∘ senate, decisions)
-    N_senates = maximum(seneates)
+    senates = map(d -> id(senate(d)) + 1, decisions)
+    N_senates = maximum(senates)
     # years
     years = map(d -> Dates.year(date(d)) - 2000 + 1, decisions)
     N_years = maximum(years)
-    
+
     BPatGModel(
         outcomes, outcome_labels, 
         js, n_js, N_js, 
@@ -57,37 +57,49 @@ function (problem::BPatGModel)(θ)
     (; 
         outcomes, outcome_labels, 
         js, n_js, N_js, 
-        cpcs, n_cpcs, N_cpcs
+        cpcs, n_cpcs, N_cpcs,
+        senates, N_senates,
+        years, N_years,
     ) = problem
 
-    (; zj, σj, zt, σt, αs,) = θ
+    (; α, γs, σs, δy, σy, zj, σj, zt, σt, ) = θ
 
-    logprior(zs, σs) = begin
-        sum(logpdf(Exponential(1), σ) for σ in σs) +
-        sum(logpdf(MvNormal(Zeros(2), I), z) for z in zs)
-    end
-
-    loglik = sum(zip(outcomes, js, n_js, cpcs, n_cpcs)) do (yi, ji, nji, ti, nti)
-        η = sum(zj[j] .* σj for j in ji) ./ nji +
-            sum(zt[t] .* σt for t in ti) ./ nti + αs
+    loglik = sum(zip(outcomes, senates, years, js, n_js, cpcs, n_cpcs)) do (oi, si, yi, ji, nji, ti, nti)
+        η = α + γs[si] + δy[yi] + 
+            sum(zj[j] .* σj for j in ji) ./ nji +
+            sum(zt[t] .* σt for t in ti) ./ nti
+            
         p = softmax(vcat(0.0, η))
-        logpdf(Categorical(p), yi)
+        logpdf(Categorical(p), oi)
     end
 
-    logpri = logpdf(MvNormal(Zeros(2), I), αs) + 
-             logprior(zj, σj) + 
-             logprior(zt, σt)
+    logprior_hierarchical(zs, σs; centered=true) = begin
+        Σ = centered ? diagm(σs) : I
+        sum(logpdf(Exponential(1), σ) for σ in σs) +
+        sum(logpdf(MvNormal(Zeros(2), Σ), z) for z in zs)
+    end
+
+    logpri = logpdf(MvNormal(Zeros(2), I), α) + 
+             logprior_hierarchical(γs, σs) + 
+             logprior_hierarchical(δy, σy) +
+             logprior_hierarchical(zj, σj; centered=false) + 
+             logprior_hierarchical(zt, σt; centered=false)
 
     loglik + logpri
 end
 
 function Model.transformation(problem::BPatGModel)
     as((
+        α=as(Vector, asℝ, 2),
+        γs=as(Vector, as(Vector, 2), problem.N_senates),
+        σs=as(Vector, asℝ₊, 2),
+        δy=as(Vector, as(Vector, 2), problem.N_years),
+        σy=as(Vector, asℝ₊, 2),
         zj=as(Vector, as(Vector, 2), problem.N_js),   
-        zt=as(Vector, as(Vector, 2), problem.N_cpcs), 
         σj=as(Vector, asℝ₊, 2),
+        zt=as(Vector, as(Vector, 2), problem.N_cpcs), 
         σt=as(Vector, asℝ₊, 2),
-        αs=as(Vector, asℝ, 2),
+        
     ))
 end
 
