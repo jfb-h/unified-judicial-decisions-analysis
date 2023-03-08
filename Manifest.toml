@@ -2,7 +2,7 @@
 
 julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "8f5d9b6db3add2cc18f6ace5c291c27b0e30b197"
+project_hash = "ddd2ce659560d3c45f0ecf28669178f3b9d8bcb2"
 
 [[deps.ANSIColoredPrinters]]
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
@@ -1890,6 +1890,11 @@ version = "0.1.6"
 [[deps.Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[[deps.ThreadTools]]
+git-tree-sha1 = "e335e40d393ccc1e1aa8087632989e856db988e0"
+uuid = "dbf13d8f-d36e-4350-8970-f3a99faba1a8"
+version = "0.2.0"
 
 [[deps.ThreadsX]]
 deps = ["ArgCheck", "BangBang", "ConstructionBase", "InitialValues", "MicroCollections", "Referenceables", "Setfield", "SplittablesBase", "Transducers"]
