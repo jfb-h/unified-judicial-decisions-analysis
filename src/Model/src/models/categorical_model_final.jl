@@ -62,10 +62,10 @@ function (problem::BPatGModel)(θ)
         years, N_years,
     ) = problem
 
-    (; α, γs, σs, δy, σy, zj, σj, zt, σt, ) = θ
+    (; α, zs, σs, zy, σy, zj, σj, zt, σt, ) = θ
 
     loglik = sum(zip(outcomes, senates, years, js, n_js, cpcs, n_cpcs)) do (oi, si, yi, ji, nji, ti, nti)
-        η = α + γs[si] + δy[yi] + 
+        η = α + zs[si] .* σs + zy[yi] .* σy + 
             sum(zj[j] .* σj for j in ji) ./ nji +
             sum(zt[t] .* σt for t in ti) ./ nti
             
@@ -80,8 +80,8 @@ function (problem::BPatGModel)(θ)
     end
 
     logpri = logpdf(MvNormal(Zeros(2), I), α) + 
-             logprior_hierarchical(γs, σs) + 
-             logprior_hierarchical(δy, σy) +
+             logprior_hierarchical(zs, σs; centered=false) + 
+             logprior_hierarchical(zy, σy; centered=false) +
              logprior_hierarchical(zj, σj; centered=false) + 
              logprior_hierarchical(zt, σt; centered=false)
 
@@ -91,9 +91,9 @@ end
 function Model.transformation(problem::BPatGModel)
     as((
         α=as(Vector, asℝ, 2),
-        γs=as(Vector, as(Vector, 2), problem.N_senates),
+        zs=as(Vector, as(Vector, 2), problem.N_senates),
         σs=as(Vector, asℝ₊, 2),
-        δy=as(Vector, as(Vector, 2), problem.N_years),
+        zy=as(Vector, as(Vector, 2), problem.N_years),
         σy=as(Vector, asℝ₊, 2),
         zj=as(Vector, as(Vector, 2), problem.N_js),   
         σj=as(Vector, asℝ₊, 2),
