@@ -24,6 +24,7 @@ using TransformedLogDensities
 using DynamicHMC
 using DynamicHMC.Diagnostics
 using MCMCDiagnosticTools
+using InferenceObjects
 
 using StatsFuns: logistic
 using LogExpFunctions: softmax
@@ -35,6 +36,7 @@ set_theme!(theme_light())
 include("datamodel.jl")
 include("decisionmodels.jl")
 include("utils.jl")
+include("inferencedata.jl")
 
 include("models/binomial_groups_model.jl")
 include("models/mixed_membership_model.jl")

@@ -43,4 +43,27 @@ function filterpdfs(dir=RAWDIR, newdir=FILTERDIR)
     return nothing
 end
 
+
+# function hasstreitwert(page::String)
+#     contains(page, r"streitwert"i)
+# end
+# hasstreitwert(doc::Vector{String}) = mapreduce(hasstreitwert, |, first(doc, 3))
+
+# function filterstreitwert(dir, newdir)
+#     isdir(newdir) || mkdir(newdir)
+#     SUBDIRS = readdir(dir)
+#     @showprogress "Filtering directory..." for SUBDIR in SUBDIRS
+#         FILES = joinpath.(RAWDIR, SUBDIR, readdir(joinpath(RAWDIR, SUBDIR)))
+#         for file in FILES
+#             pdf = parse_pdf(file)
+#             if hasstreitwert(pdf)
+#                 newsubdir = joinpath(newdir, SUBDIR)
+#                 isdir(newsubdir) || mkdir(newsubdir)
+#                 run(`cp "./$file" "./$newsubdir"`)
+#             end
+#         end
+#     end
+#     return nothing
+# end
+
 end#module

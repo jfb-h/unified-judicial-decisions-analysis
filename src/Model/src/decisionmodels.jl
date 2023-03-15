@@ -26,6 +26,7 @@ end
 
 stats(x::DynamicHMCPosterior) = getfield(x, :stat)
 _post(x::DynamicHMCPosterior) = getfield(x, :post)
+results(x::DynamicHMCPosterior) = getfield(x, :res)
 
 paramnames(x::DynamicHMCPosterior) = keys(first(_post(x)))
 
@@ -55,14 +56,20 @@ function sample(::NUTS, problem::AbstractDecisionModel, iter::Integer, chains::I
                 backend=:ForwardDiff, reporter=NoProgressReport())     
     t = transformation(problem)
     ℓ = TransformedLogDensity(t, problem)
-    ∇ℓ = if backend == :ForwardDiff
-        ADgradient(backend, ℓ)
-    elseif backend == :ReverseDiff
-        ADgradient(backend, ℓ; compile=Val(true))
-    else
-        throw(ArgumentError("Unknown AD backend."))
+    # ∇ℓ = if backend == :ForwardDiff
+    #     ADgradient(backend, ℓ)
+    # elseif backend == :ReverseDiff
+    #     ADgradient(backend, ℓ; compile=Val(true))
+    # else
+    #     throw(ArgumentError("Unknown AD backend."))
+    # end
+
+    kwargs = backend == :ReverseDiff ? (;compile=Val(true)) : (;)
+
+    res = map(1:chains) do _
+        ∇ℓ = ADgradient(backend, ℓ; kwargs...)
+        mcmc_with_warmup(Random.default_rng(), ∇ℓ, iter; reporter)
     end
-    res = ThreadsX.map(_ -> mcmc_with_warmup(Random.default_rng(), ∇ℓ, iter; reporter), 1:chains)
     post = StructArray(TransformVariables.transform.(t, eachcol(pool_posterior_matrices(res))))
     stat = [(tree_statistics=r.tree_statistics, κ=r.κ, ϵ=r.ϵ) for r in res]
     DynamicHMCPosterior(post, stat, res)
