@@ -95,12 +95,14 @@ end
 
 id(x) = x.id
 label(x) = x.label
+label(s::Senate) = "Board $(id(s))"
 
 patentage(d::Decision) = (date(d) - date(patent(d))).value / 365
 
 outcome(x::Decision) = x.outcome
 patent(x::Decision) = x.patent
 senate(x::Decision) = x.senate
+board(x::Decisions) = senate(x)
 judges(x::Decision) = x.judges
 chairman(x::Decision) = first(judges(x))
 date(x::Decision) = x.date
