@@ -64,15 +64,15 @@ function plot_judge_activity(fig = Figure())
 	fig
 end
 
-function plot_senate_time(fig = Figure())
-	u = sort(unique(df.senate))
-	l = [i == 0 ? "missing" : string(i) * ". Senate" for i in u]
+function plot_board_time(fig = Figure())
+	u = sort(unique(df.board))
+	l = [i == 0 ? "missing" : string(i) * ". board" for i in u]
 	
-	ax = Axis(fig[1,1], yticks=(1:length(u), l), title="Decisions by senate", 
+	ax = Axis(fig[1,1], yticks=(1:length(u), l), title="Decisions by board", 
 		titlesize=20, titlefont="Arial bold", titlecolor="grey40")
 
 	for (i, s) in enumerate(u)
-		vs = Dates.datetime2rata.(df.date[df.date .> Date(1990) .&& df.senate .== s])
+		vs = Dates.datetime2rata.(df.date[df.date .> Date(1990) .&& df.board .== s])
 		xs = repeat(vs, inner=2)
 		ys = i .+ repeat([-.3, .3], outer=length(vs))
 		linesegments!(ax, xs, ys)
@@ -147,7 +147,7 @@ function plot_judge_outcomes(fig=Figure())
 	fig
 end
 
-function plot_senate_outcomes(fig=Figure())
+function plot_board_outcomes(fig=Figure())
 	options = [
 		"annulled",
 		"partially annulled",
@@ -161,24 +161,24 @@ function plot_senate_outcomes(fig=Figure())
 	
 	d = @chain df begin
 		@rsubset :outcome in options
-		groupby([:senate, :outcome])
-		@combine :count = length(:senate)
-		groupby(:senate)
+		groupby([:board, :outcome])
+		@combine :count = length(:board)
+		groupby(:board)
 		@transform :total = sum(:count)
 		@rtransform :share = :count / :total
 		@transform :outcome_int = [optsdict[o] for o in :outcome]
-		sort(:senate)
+		sort(:board)
 	end
 
-	n = unique(select(d, [:total, :senate])).total
-	u = sort(unique(df.senate))
+	n = unique(select(d, [:total, :board])).total
+	u = sort(unique(df.board))
 	l = [i == 0 ? "missing" : string(i) * ". Sen." for i in u]
 
-	ax = Axis(fig[1,1], title="Share of outcomes by senate", 
+	ax = Axis(fig[1,1], title="Share of outcomes by board", 
 		titlesize=20, titlefont="Arial bold", titlecolor="grey40",
 		xticks=(u .+ 1, l))
 	
-	barplot!(ax, d.senate .+1, d.share, stack=d.outcome_int, color=PAL[d.outcome_int])
+	barplot!(ax, d.board .+1, d.share, stack=d.outcome_int, color=PAL[d.outcome_int])
 	
 	text!(string.(n), position= Point.(1:length(n), 1.04), 
 		align=(:center, :center), color=:black, fontsize=16, font="Arial bold")
@@ -226,15 +226,15 @@ function plot_outcomeshare(fig=Figure())
 	fig
 end
 
-function plot_network_senate(fig=Figure())
-	g = graph_senate_judge(df)
-	u = sort(unique(df.senate))
-	l = [i == 0 ? "missing" : string(i) * ". Senate" for i in u]
+function plot_network_board(fig=Figure())
+	g = graph_board_judge(df)
+	u = sort(unique(df.board))
+	l = [i == 0 ? "missing" : string(i) * ". board" for i in u]
 	c = vcat(repeat([:grey20], nv(g)-length(u)), PAL[u .+ 1])
 	s = vcat(repeat([5], nv(g)-length(u)), repeat([25], length(u)))
 	m = vcat(repeat([:circle], nv(g)-length(u)), repeat([:rect], length(u)))
 	
-	ax = Axis(fig[1,1], title="Judge-senate affiliation network", 
+	ax = Axis(fig[1,1], title="Judge-board affiliation network", 
 		titlesize=20, titlefont="Arial bold", titlecolor="grey40")
 	graphplot!(ax, g, node_color=c, node_size=s, node_marker=m, edge_color=:grey70)
 	hidedecorations!(ax)
@@ -291,7 +291,7 @@ function plot_composite()
 	plot_timeseries(fig[1,1])
 	plot_outcomeshare(fig[2,1])
 	plot_judge_outcomes(fig[3,1])
-	plot_senate_time(fig[4,1])
+	plot_board_time(fig[4,1])
 
 	for (p,t) in zip(1:4, 'A':'D') label(fig, (p,1), string(t)) end
 
@@ -299,7 +299,7 @@ function plot_composite()
 	
 	plot_network_judge(rightcol[1,1])
 	plot_matrix(rightcol[2,1])
-	plot_senate_outcomes(rightcol[3,1])
+	plot_board_outcomes(rightcol[3,1])
 	
 	for (p,t) in zip(1:3, 'E':'G') label(rightcol, (p,1), string(t)) end
 
@@ -325,7 +325,7 @@ function explore()
         date=date.(docs),
         patent=patent.(docs),
         outcome=outcome.(docs),
-        senate=senate.(docs),
+        board=board.(docs),
         judges=judges.(docs),
     );
 

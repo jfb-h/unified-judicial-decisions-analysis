@@ -15,14 +15,14 @@ function graph_case_judge(docs)
 	g
 end	
 
-function graph_senate_judge(df)
-	d = flatten(select(df, :judges, :senate), :judges) |> unique
+function graph_board_judge(df)
+	d = flatten(select(df, :judges, :board), :judges) |> unique
 	nj = length(unique(d.judges))
-	ns = length(unique(d.senate))
-	m = Dict(vcat(unique(d.judges), sort(unique(d.senate))) .=> 1:nj+ns)
+	ns = length(unique(d.board))
+	m = Dict(vcat(unique(d.judges), sort(unique(d.board))) .=> 1:nj+ns)
 	g = SimpleGraph(nj + ns)
 	for r in eachrow(d)
-		add_edge!(g, m[r.judges], m[r.senate])
+		add_edge!(g, m[r.judges], m[r.board])
 	end
 	g
 end	

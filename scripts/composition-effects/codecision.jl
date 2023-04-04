@@ -21,12 +21,12 @@ end
 
 adjacency_matrix(decisions) = (inc = incidence_matrix(decisions); inc' * inc)
 
-function judge_senate_affil(decisions)
+function judge_board_affil(decisions)
     res = [Int[] for _ in 1:200]
     for d in decisions
         js = id.(judges(d))
         for j in js
-            push!(res[j], id(senate(d)))
+            push!(res[j], id(board(d)))
         end
     end
     unique!.(res)
@@ -41,7 +41,7 @@ end
 
 function adjacency_matrix_permuted(decisions)
     adj = adjacency_matrix(decisions)
-    sen = mode.(judge_senate_affil(decisions))
+    sen = mode.(judge_board_affil(decisions))
     idx = sort(1:200; by=x->sen[x])
     per = float.(adj[idx, idx])
     per[diagind(per)] .= NaN

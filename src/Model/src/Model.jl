@@ -46,8 +46,8 @@ include("models/categorical_model_final.jl")
 include("visualization.jl")
 
 # data handling (types + methods)
-export Outcome, Senate, Judge, Decision, Patent
-export id, label, senate, board, outcome, judges, date
+export Outcome, Board, Judge, Decision, Patent
+export id, label, board, outcome, judges, date
 export patent, cpc, subclass, class, section, patentage, office
 export cpc2int
 
@@ -55,7 +55,7 @@ export cpc2int
 export loaddata
 
 # plotting
-export plot_posterior, errorplot!, errorplot, ridgeplot!, ridgeplot
+#export plot_posterior, errorplot!, errorplot, ridgeplot!, ridgeplot
 
 # bayesian modeling
 export transformation, sample, paramnames, predict, stats, predict_groups, empirical

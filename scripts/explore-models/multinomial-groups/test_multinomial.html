@@ -2620,7 +2620,7 @@ vertical-align: -.125em;
   <li><a href="#setup" id="toc-setup" class="nav-link active" data-scroll-target="#setup">Setup</a>
   <ul class="collapse">
   <li><a href="#multinomial-model-for-aggregated-counts" id="toc-multinomial-model-for-aggregated-counts" class="nav-link" data-scroll-target="#multinomial-model-for-aggregated-counts">Multinomial model for aggregated counts</a></li>
-  <li><a href="#variation-by-senate" id="toc-variation-by-senate" class="nav-link" data-scroll-target="#variation-by-senate">Variation by Senate</a></li>
+  <li><a href="#variation-by-board" id="toc-variation-by-board" class="nav-link" data-scroll-target="#variation-by-board">Variation by board</a></li>
   <li><a href="#variation-by-chairman" id="toc-variation-by-chairman" class="nav-link" data-scroll-target="#variation-by-chairman">Variation by chairman</a></li>
   </ul></li>
   </ul>
@@ -2666,7 +2666,7 @@ vertical-align: -.125em;
 </div>
 <section id="multinomial-model-for-aggregated-counts" class="level2">
 <h2 class="anchored" data-anchor-id="multinomial-model-for-aggregated-counts">Multinomial model for aggregated counts</h2>
-<p>The first model we specify is a simple multinomial model for counts of the respective outcome labels aggregated by groups (e.g., senates) to investigate simple group-level differences:</p>
+<p>The first model we specify is a simple multinomial model for counts of the respective outcome labels aggregated by groups (e.g., boards) to investigate simple group-level differences:</p>
 <p><span class="math display">\[
 \begin{align}
 y_g &amp;\sim \textrm{Multinomial}(n_g, p_g) \\
@@ -2723,11 +2723,11 @@ p_g &amp;\sim \textrm{MvNormal}(\textbf{0}, \textbf{I})
 <span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="variation-by-senate" class="level2">
-<h2 class="anchored" data-anchor-id="variation-by-senate">Variation by Senate</h2>
-<p>In a first step, we investigate variation between the 7 senates (boards) in the dataset. With the model architecture specified above, each senate get its own vector of coefficients specifying the likelihood of each outcome.</p>
+<section id="variation-by-board" class="level2">
+<h2 class="anchored" data-anchor-id="variation-by-board">Variation by board</h2>
+<p>In a first step, we investigate variation between the 7 boards (boards) in the dataset. With the model architecture specified above, each board get its own vector of coefficients specifying the likelihood of each outcome.</p>
 <div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>problem <span class="op">=</span> <span class="fu">MultinomialGroupsModel</span>(decisions; groupfun <span class="op">=</span> label <span class="op">∘</span> senate);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>problem <span class="op">=</span> <span class="fu">MultinomialGroupsModel</span>(decisions; groupfun <span class="op">=</span> label <span class="op">∘</span> board);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>post <span class="op">=</span> Model.<span class="fu">sample</span>(problem, <span class="fl">1000</span>, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -2859,7 +2859,7 @@ p_g &amp;\sim \textrm{MvNormal}(\textbf{0}, \textbf{I})
 </section>
 <section id="variation-by-chairman" class="level2">
 <h2 class="anchored" data-anchor-id="variation-by-chairman">Variation by chairman</h2>
-<p>We now perform the same analysis as before but instead of grouping outcomes by senate, we group them by chairman to investigate differences between judges.</p>
+<p>We now perform the same analysis as before but instead of grouping outcomes by board, we group them by chairman to investigate differences between judges.</p>
 <div class="cell" data-execution_count="52">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>problem_chairman <span class="op">=</span> <span class="fu">MultinomialGroupsModel</span>(decisions; groupfun<span class="op">=</span>label <span class="op">∘</span> first <span class="op">∘</span> judges);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>

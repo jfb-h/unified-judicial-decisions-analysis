@@ -6,10 +6,10 @@ function _copy_files_to_dir(files, dir)
 end
 
 function formatcpc(cpc)
-  contains("/")(cpc) || return cpc
+  contains("/")(cpc) || return strip(cpc)
   before, after = split(strip(cpc), "/")
   length(before) == 8 && return before * "/" * after
   first4, rest = before[1:4], before[5:end]
   spaces = repeat(" ", 4 - length(rest))
-  return first4 * spaces * rest * "/" * after
+  return strip(first4 * spaces * rest * "/" * after)
 end

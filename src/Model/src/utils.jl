@@ -1,51 +1,30 @@
-
-const OUTCOMES = dictionary([
-    "annulled" => 1,
-    "partially annulled" => 1, 
-    "claim dismissed" => 0,
-    "other" => missing
-])
-
-"""
-    loaddata(dir)
-
-Load data in `.jsonl` format from directory dir and construct a `Vector{Decision}`.
-"""
-function loaddata(dir::AbstractString)
-    json = mapreduce(vcat, joinpath.(dir, readdir(dir))) do file
-        JSON3.read(read(file), jsonlines=true)
-    end
-
-    #TODO: Better missing handling
-    json = filter(json) do j
-        j.outcome != "other" &&
-        Date(2000) <= Date(j.date) <= Date(2021) &&
-        length(j.judges) == 5 &&
-        !isnothing(j.patent.cpc) &&
-        length(filter(!isnothing, j.patent.cpc)) > 0
-    end
-
-    judgepool = mapreduce(j -> j.judges, unique ∘ vcat, json)
-    judgepool = Dictionary(sort(judgepool), 1:length(judgepool))
-
-    map(enumerate(json)) do (i, j)
-        outcome = Outcome(OUTCOMES[j.outcome], j.outcome)
-        senate = Senate(j.senate, "$(j.senate). Senate")
-        patent = Patent(j.patent.nr, Date(j.patent.date), j.patent.cpc)
-        date = Date(j.date)
-        judges = map(j.judges) do j
-            Judge(judgepool[j], j)
-        end
-
-        Decision(i, j.id, patent, outcome, date, senate, judges)
-    end
+function _makepool(json, idx::Symbol)
+  u = unique(filter!(!isnothing, mapreduce(j -> getindex(j, idx), vcat, json)))
+  Dictionary(sort(u), 1:length(u))
 end
 
- 
-_filterjudges(problem, predicate) = begin 
-    j = reduce(vcat, problem.js)
-    c = countmap(j) |> Dictionary
-    filter!(predicate, c) |> keys |> collect
+"""
+    loaddata(file)
+
+Load data from jsonlines (`.sjonl`) file `file` and construct a `Vector{Decision}`.
+"""
+function loaddata(file::AbstractString)
+    json = JSON3.read(read(file), jsonlines=true)
+
+    OUTCOMEPOOL = dictionary(["partially annulled" => 1, "annulled" => 2, "claim dismissed" => 3]) 
+    JUDGEPOOL = Model._makepool(json, :judges)
+    BOARDPOOL = Model._makepool(json, :board)
+    CPCPOOL = Model._makepool(json, :cpc)
+
+    map(enumerate(json)) do (i, j)
+        outcome = Outcome(OUTCOMEPOOL[j.outcome], j.outcome)
+        board   = Board(BOARDPOOL[j.board], "$(j.board). Board")
+        judges  = isnothing(j.judges) ? Judge[] : map(j -> Judge(JUDGEPOOL[j], j), j.judges)
+        patent  = Patent(j.patent, j.cpc)
+        date    = Date(j.date, dateformat"m/dd/yyyy")
+
+        Decision(i, j.id, patent, outcome, date, board, judges)
+    end
 end
 
 """
@@ -64,18 +43,9 @@ function cpc2int(decisions, levelfun)
 	ts_int, tref
 end	
 
-function predict_groups(pred, groups)
-    p = reduce(hcat, pred)
-    rows = collect(eachrow(p))
-    guni = sort!(unique(reduce(vcat, groups)))
-    StructArray(map(guni) do g
-        i = findall(x -> g in x, groups)
-        s = mean(rows[i])
-        (mean=mean(s), sd=std(s))
-    end)
-end
-
-function predict_groups(problem::AbstractDecisionModel, post::AbstractPosterior, groups)
-    predict_groupmean(predict(problem, post), groups)
+_filterjudges(problem, predicate) = begin 
+    j = reduce(vcat, problem.js)
+    c = countmap(j) |> Dictionary
+    filter!(predicate, c) |> keys |> collect
 end
 

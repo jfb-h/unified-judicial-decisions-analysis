@@ -23,7 +23,7 @@ Despite ostensibly transparent criteria and comprehensive technical information,
 
 > $H_{r}$: Under a realist model of judicial decision making, there are judge degrees of freedom, allowing for between-judge variation in decision making even for comparable cases.
 
-The goal of this paper is to empirically test $H_l$ against $H_r$ within a single court, the German Federal Patent Court. Given this goal, a core task is to define what constitutes 'comparable cases'. We here investigate three factors to control for: First, we control for the timepoint of the decision, as the observation period stretches over a period of relative turmoil in the global patenting system, which might have a systematic impact on case outcomes. Second, technology classification, as different technologies might be subject to different industry dynamics, which in turn might tip the scales systematically in the plaintiff's or defendant's direction. And third, senate affiliation, as specific senates might have developed their own explicit or implicit rules. 
+The goal of this paper is to empirically test $H_l$ against $H_r$ within a single court, the German Federal Patent Court. Given this goal, a core task is to define what constitutes 'comparable cases'. We here investigate three factors to control for: First, we control for the timepoint of the decision, as the observation period stretches over a period of relative turmoil in the global patenting system, which might have a systematic impact on case outcomes. Second, technology classification, as different technologies might be subject to different industry dynamics, which in turn might tip the scales systematically in the plaintiff's or defendant's direction. And third, board affiliation, as specific boards might have developed their own explicit or implicit rules. 
 
 
 ## Data on Validity Cases at the Bundespatentgericht
@@ -211,10 +211,10 @@ Looking at outcomes by year, the most striking feature is missing data for 2006 
 In terms of variation over time, there are slightly less dismissals in recent years.  
 
 
-### Is there variation between senates?
+### Is there variation between boards?
 
 ```{julia}
-df = map(summarize_outcome, group(label ∘ senate, decisions)) |> DataFrame;
+df = map(summarize_outcome, group(label ∘ board, decisions)) |> DataFrame;
 ```
 
 ::: {.panel-tabset}
@@ -224,7 +224,7 @@ df = map(summarize_outcome, group(label ∘ senate, decisions)) |> DataFrame;
 ```{julia}
 #| code-fold: true
 
-function plot_outcome_senate(df)
+function plot_outcome_board(df)
     outcomes = [:dismissed, :partial, :annulled]
     dflong = DataFrames.stack(df, outcomes)
     dflong.value = dflong.value .* dflong.n
@@ -238,7 +238,7 @@ function plot_outcome_senate(df)
     draw(plt; legend=(;position=:bottom), axis=(;xticklabelrotation=1))
 end
 
-plot_outcome_senate(df)
+plot_outcome_board(df)
 ```
 
 ## Data
@@ -250,7 +250,7 @@ df
 
 :::
 
-There is some slight variation in case outcomes across senates, with about a 7 percentage point difference in dismissal rates between, e.g., senates 3 and 4.
+There is some slight variation in case outcomes across boards, with about a 7 percentage point difference in dismissal rates between, e.g., boards 3 and 4.
 
 
 

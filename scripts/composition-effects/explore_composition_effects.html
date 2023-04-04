@@ -133,7 +133,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>How frequent are changes to the board composition?</li>
 </ul>
 <div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">decisions_from_board</span>(decisions, board) <span class="op">=</span> <span class="fu">filter</span>(d <span class="op">-&gt;</span> <span class="fu">id</span>(<span class="fu">senate</span>(d)) <span class="op">==</span> board, decisions)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">decisions_from_board</span>(decisions, board) <span class="op">=</span> <span class="fu">filter</span>(d <span class="op">-&gt;</span> <span class="fu">id</span>(<span class="fu">board</span>(d)) <span class="op">==</span> board, decisions)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
 <pre><code>decisions_from_board (generic function with 1 method)</code></pre>
 </div>

@@ -5,31 +5,26 @@
 Outcome of a judicial decision.
 
 # Fields
-- id::Int : Binary representation of the decision outcome, either 0 (not nullified) or 1 (nullified)
-- label::String : Textual representation of the decision outcome
+- id::Int : Integer representation of the decision outcome, should be contiguous
+- label::String : Label of the decision outcome
 """
 struct Outcome
-    id::Int
-    label::String
-
-    function Outcome(id::Int, label::String)
-        id in (0, 1) || throw(ArgumentError("id needs to be 0 or 1 but was $id"))
-        new(id, label)
-    end
+  id::Int
+  label::String
 end
 
 """
-    Senate
+    Board
 
-Senate making a judicial decision.
+Board making a judicial decision.
 
 # Fields
-- id::Int : Integer representation of the senate
-- label::String : Name of the senate
+- id::Int : Integer index of the board, should be contiguous
+- label::String : Name of the board
 """
-struct Senate
-    id::Int
-    label::String
+struct Board
+  id::Int
+  label::String
 end
 
 """
@@ -38,32 +33,37 @@ end
 Judge involved in making a judicial decision.
 
 # Fields
-- id::Int : Integer representation of the judge
+- id::Int : Integer representation of the judge, should be contiguous from 1:NJudges
 - label::String : Name of the judge
 """
 struct Judge
-    id::Int
-    label::String
+  id::Int
+  label::String
 end
+
+#"""
+#  CPC
+#
+#CPC technology classification code
+#"""
+#struct CPC
+#  id::Int
+#  label::String
+#end
 
 """
     Patent
 
 Patent for which a validity decision is to be made. Contains the patent number issued 
-by the respective authority (`auth` and `id`), the earliest publication date, and a vector of CPC symbols.
+by the respective authority (`auth` and `id`) and a vector of CPC symbols.
 """
 struct Patent
-    nr::String
-    date::Date
-    cpc::Vector{String}
+  nr::String
+  cpc::Vector{String}
 end
-
-Patent(s::AbstractString, d::Union{Date, Nothing}, c::Nothing) = Patent(s, d, String[])
-Patent(s::AbstractString, d::Union{Date, Nothing}, c::AbstractArray) = Patent(s, d, string.(filter(!isnothing, c)))
 
 id(x::Patent) = x.nr
 cpc(x::Patent) = x.cpc
-date(x::Patent) = x.date
 subclass(x::Patent) = first.(x.cpc, 4) |> unique
 class(x::Patent) = first.(x.cpc, 3) |> unique
 section(x::Patent) = first.(x.cpc, 1) |> unique
@@ -80,29 +80,27 @@ Metadata for a judicial decisions on patent nullity.
     - patent::String : id of the patent
     - outcome::Outcome : decision outcome
     - date::Date : date of publication of the decision
-    - senate::Senate : senate making the decision
+    - board::Board : board making the decision
     - judges::Vector{Judge} : panel of judges involved in the decision
 """
 struct Decision
-    id::Int
-    label::String
-    patent::Patent
-    outcome::Outcome
-    date::Date
-    senate::Senate
-    judges::Vector{Judge}
+  id::Int
+  label::String
+  patent::Patent
+  outcome::Outcome
+  date::Date
+  board::Board
+  judges::Vector{Judge}
 end
 
 id(x) = x.id
 label(x) = x.label
-label(s::Senate) = "Board $(id(s))"
 
 patentage(d::Decision) = (date(d) - date(patent(d))).value / 365
 
 outcome(x::Decision) = x.outcome
 patent(x::Decision) = x.patent
-senate(x::Decision) = x.senate
-#board(x::Decisions) = senate(x)
+board(x::Decision) = x.board
 judges(x::Decision) = x.judges
 chairman(x::Decision) = first(judges(x))
 date(x::Decision) = x.date
@@ -110,8 +108,8 @@ date(x::Decision) = x.date
 Base.show(io::IO, d::Decision) = print(io, label(d))
 
 function Base.show(io::IO, ::MIME"text/plain", d::Decision)
-    println(io, "Ruling $(label(d)) on $(id(patent(d)))")
-    println(io, "Date of decision: $(Dates.format(date(d), "d U, Y"))")
-    println(io, "Decided by: $(label(senate(d))) ($(join(label.(judges(d)), ", ")))")
-    println(io, "Outcome: $(label(outcome(d)))")
+  println(io, "Ruling $(label(d)) on $(id(patent(d)))")
+  println(io, "Date of decision: $(Dates.format(date(d), "d U, Y"))")
+  println(io, "Decided by: $(label(board(d))) ($(join(label.(judges(d)), ", ")))")
+  println(io, "Outcome: $(label(outcome(d)))")
 end

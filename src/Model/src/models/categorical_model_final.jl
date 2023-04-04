@@ -11,9 +11,9 @@ struct BPatGModel <: Model.AbstractDecisionModel
     cpcs::Vector{Vector{Int}}
     n_cpcs::Vector{Int}
     N_cpcs::Int
-    # Senate information
-    senates::Vector{Int}
-    N_senates::Int
+    # board information
+    boards::Vector{Int}
+    N_boards::Int
     # Year information
     years::Vector{Int}
     N_years::Int
@@ -31,9 +31,9 @@ function BPatGModel(decisions::Vector{Decision}; levelfun=class)
     cpcs, _ = cpc2int(decisions, levelfun)
     n_cpcs = length.(cpcs)
     N_cpcs = maximum(reduce(vcat, cpcs))
-    # senates
-    senates = map(d -> id(senate(d)) + 1, decisions)
-    N_senates = maximum(senates)
+    # boards
+    boards = map(d -> id(board(d)) + 1, decisions)
+    N_boards = maximum(boards)
     # years
     years = map(d -> Dates.year(date(d)) - 2000 + 1, decisions)
     N_years = maximum(years)
@@ -42,7 +42,7 @@ function BPatGModel(decisions::Vector{Decision}; levelfun=class)
         outcomes, outcome_labels, 
         js, n_js, N_js, 
         cpcs, n_cpcs, N_cpcs,
-        senates, N_senates,
+        boards, N_boards,
         years, N_years,
     )
 end;
@@ -58,13 +58,13 @@ function (problem::BPatGModel)(θ)
         outcomes, outcome_labels, 
         js, n_js, N_js, 
         cpcs, n_cpcs, N_cpcs,
-        senates, N_senates,
+        boards, N_boards,
         years, N_years,
     ) = problem
 
     (; α, zs, σs, zy, σy, zj, σj, zt, σt, ) = θ
 
-    loglik = sum(zip(outcomes, senates, years, js, n_js, cpcs, n_cpcs)) do (oi, si, yi, ji, nji, ti, nti)
+    loglik = sum(zip(outcomes, boards, years, js, n_js, cpcs, n_cpcs)) do (oi, si, yi, ji, nji, ti, nti)
         η = α + zs[si] .* σs + zy[yi] .* σy + 
             sum(zj[j] .* σj for j in ji) ./ nji +
             sum(zt[t] .* σt for t in ti) ./ nti
@@ -91,7 +91,7 @@ end
 function Model.transformation(problem::BPatGModel)
     as((
         α=as(Vector, asℝ, 2),
-        zs=as(Vector, as(Vector, 2), problem.N_senates),
+        zs=as(Vector, as(Vector, 2), problem.N_boards),
         σs=as(Vector, asℝ₊, 2),
         zy=as(Vector, as(Vector, 2), problem.N_years),
         σy=as(Vector, asℝ₊, 2),

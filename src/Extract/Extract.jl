@@ -12,7 +12,7 @@ into json format and store the result into JSONDIR.
 - date
 - outcome
 - patent id
-- senate number
+- board number
 - judges
 - content
 """
@@ -33,7 +33,7 @@ Base.@kwdef mutable struct Document
   date::Date = Date(9999)
   outcome::String = ""
   patent::String = ""
-  senate::Int = 0
+  board::Int = 0
   judges::Vector{String} = String[]
   pages::Vector{String}
 end
@@ -48,7 +48,7 @@ function Base.show(io::IO, ::MIME"text/plain", doc::Document)
   println(io, "Date: $(Dates.format(doc.date, "dd.mm.yyyy"))")
   println(io, "Patent: $(doc.patent)")
   println(io, "Outcome: $(doc.outcome)")
-  println(io, "BPatG Senate: $(doc.senate)")
+  println(io, "BPatG board: $(doc.board)")
   println(io, "Judges: $(join(doc.judges,", "))")
 end
 
@@ -58,7 +58,7 @@ casenumber(d::Document) = d.id
 date(d::Document) = d.date
 outcome(d::Document) = d.outcome
 patent(d::Document) = d.patent
-senate(d::Document) = d.senate
+board(d::Document) = d.board
 judges(d::Document) = d.judges
 pages(d::Document) = d.pages
 body(d::Document) = join(pages(d), "\n")
@@ -88,12 +88,12 @@ get_casenumber(doc::Document) = get_casenumber(first(doc.pages))
 isnullity(casenumber::AbstractString) = occursin(r"ni"i, casenumber)
 isnullity(doc::Document) = isnullity(get_casenumber(doc))
 
-function get_senate(s::AbstractString)
+function get_board(s::AbstractString)
   m = match(r"[0-9]\.*\s*Senat", s)
   isnothing(m) && return 0
   parse(Int, match(r"[0-9]{1,2}", m.match).match)
 end
-get_senate(doc::Document) = get_senate(body(doc))
+get_board(doc::Document) = get_board(body(doc))
 
 function get_patent(s::AbstractString)
   m = match(r"betreffend\s{0,3}das\s{0,3}(europäische|deutsche)?\s{0,3}Patent\s{0,3}(DE|EP)?([0-9]|\s){6,20}"i, s)
@@ -160,7 +160,7 @@ function update!(d::Document)
   d.id = get_casenumber(d)
   d.outcome = get_result(d)
   d.patent = get_patent(d)
-  d.senate = get_senate(d)
+  d.board = get_board(d)
   d.judges = get_judges(d)
   d
 end

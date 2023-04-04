@@ -11,12 +11,12 @@ function get_casenumber(s::AbstractString)
 end
 get_casenumber(s::AbstractVector) = get_casenumber(join(first(s, 5)))
 
-function get_senate(s::AbstractString)
+function get_board(s::AbstractString)
   m = match(r"[0-9]\.*\s*Senat", s)
   isnothing(m) && return 0
   parse(Int, match(r"[0-9]{1,2}", m.match).match)
 end
-get_senate(s::AbstractVector) = get_senate(join(first(s, 5)))
+get_board(s::AbstractVector) = get_board(join(first(s, 5)))
 
 function get_patent(s::AbstractString)
   m = match(r"betreffend\s{0,3}das\s{0,3}(europäische|deutsche)?\s{0,3}Patent\s{0,3}(DE|EP)?([0-9]|\s){6,20}"i, s)

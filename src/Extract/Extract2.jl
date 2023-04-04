@@ -1,3 +1,5 @@
+module Extract
+
 using JSON3
 using CSV
 using DataFrames
@@ -5,17 +7,23 @@ using Dates
 using Dictionaries
 using ThreadsX
 
+include("utils.jl")
+include("io.jl")
+include("regex.jl")
+
+# TODO: Simplify initial extract for judge cleaning (get rid of Document)
+
 const JUDGESFILE = "data/augment/judges_manual_cleaned.csv"
 const CPCFILE = "data/augment/patentinfo.csv"
 const PDFDIR = "data/raw/pdf_filtered"
-const RESFILE = "data/processed/data"
+const MANFILE = "data/processed/data"
 
 function extractinfo(docs)
   DataFrame(
     file=docs.file,
     id=get_casenumber.(docs.doc),
     date=parse_date.(docs.file),
-    senate=get_senate.(docs.doc),
+    board=get_board.(docs.doc),
     patent=get_patent.(docs.doc),
     outcome=get_outcome.(docs.doc),
   )
@@ -34,7 +42,7 @@ function unflatten_results(df)
   res
 end
 
-function main()
+function csv_for_manual_cleaning()
   #files = filepaths(PDFDIR)
   docs = readpdfs(PDFDIR)
   judges = readjudges(JUDGESFILE)
@@ -43,8 +51,8 @@ function main()
   extracted = extractinfo(docs)
   res = combine_datasets(extracted, judges, cpcs)
 
-  write_csv(RESFILE, res)
-  #write_json(RESFILE, res)
+  write_csv(MANFILE, res)
+  #write_json(MANFILE, res)
 end
 
-isinteractive() || main()
+end

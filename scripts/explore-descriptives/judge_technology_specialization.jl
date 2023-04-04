@@ -4,7 +4,7 @@ using Dates
 
 function prepdata(decisions)
     df = DataFrame(
-        senate=senate.(decisions),
+        board=board.(decisions),
         judge=judges.(decisions),
         technology=section.(patent.(decisions))
     )
@@ -13,7 +13,7 @@ function prepdata(decisions)
         flatten(:judge)
         flatten(:technology)
         sort(:technology)
-        groupby([:judge, :technology, :senate])
+        groupby([:judge, :technology, :board])
         combine(nrow => :count)
         unstack(:technology, :count; fill=0)
     end
@@ -28,14 +28,14 @@ function df2matrix(df; k=10)
 end
 
 function plotdata2(decisions)
-    sen = sort!(unique(map(senate, decisions)); by=id)
+    sen = sort!(unique(map(board, decisions)); by=id)
     ind = CartesianIndices((4,2))
     
     df = prepdata(decisions)
     
     fig = Figure(resolution=(800, 1000))
     for (i, s) in enumerate(sen)
-        d = @rsubset df :senate == s
+        d = @rsubset df :board == s
         tec = names(d)[3:end]
         mat = df2matrix(d; k=3)
         
