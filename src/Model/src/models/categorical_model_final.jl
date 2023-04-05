@@ -32,7 +32,7 @@ function BPatGModel(decisions::Vector{Decision}; levelfun=class)
     n_cpcs = length.(cpcs)
     N_cpcs = maximum(reduce(vcat, cpcs))
     # boards
-    boards = map(d -> id(board(d)) + 1, decisions)
+    boards = map(d -> id(board(d)), decisions)
     N_boards = maximum(boards)
     # years
     years = map(d -> Dates.year(date(d)) - 2000 + 1, decisions)
