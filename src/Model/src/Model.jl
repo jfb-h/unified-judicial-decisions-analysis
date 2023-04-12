@@ -37,11 +37,13 @@ include("datamodel.jl")
 include("decisionmodels.jl")
 include("utils.jl")
 include("inferencedata.jl")
+include("loo.jl")
 
 include("models/binomial_groups_model.jl")
 include("models/mixed_membership_model.jl")
 include("models/categorical_model.jl")
 include("models/categorical_model_final.jl")
+include("models/judgesonly_model_final.jl")
 
 include("visualization.jl")
 
@@ -54,13 +56,12 @@ export cpc2int
 # data import
 export loaddata
 
-# plotting
-#export plot_posterior, errorplot!, errorplot, ridgeplot!, ridgeplot
-
 # bayesian modeling
-export transformation, sample, paramnames, predict, stats, predict_groups, empirical
+export transformation, sample, paramnames
+export predict, stats, empirical
+export getsamples
 export DynamicHMCPosterior
 
-export BinomialGroupsModel, MixedMembershipModel, MixedMembershipCategoricalModel, BPatGModel
+export BPatGModel, JudgesOnly
 
 end
