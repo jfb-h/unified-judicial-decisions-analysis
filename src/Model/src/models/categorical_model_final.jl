@@ -65,8 +65,9 @@ function (problem::BPatGModel)(θ)
     (; α, zs, σs, zy, σy, zj, σj, zt, σt, ) = θ
 
     loglik = sum(zip(outcomes, boards, years, js, n_js, cpcs, n_cpcs)) do (oi, si, yi, ji, nji, ti, nti)
-        η = α + zs[si] .* σs + zy[yi] .* σy + 
-            sum(zj[j] .* σj for j in ji) ./ nji +
+        jterm = nji > 0 ? sum(zj[j] .* σj for j in ji) ./ nji : zeros(2) # handle missing judges for year 2007
+
+        η = α + zs[si] .* σs + zy[yi] .* σy + jterm +
             sum(zt[t] .* σt for t in ti) ./ nti
             
         p = softmax(vcat(0.0, η))
