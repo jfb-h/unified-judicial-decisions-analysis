@@ -25,8 +25,7 @@ include("src/Augment/Augment.jl")
 Augment.clean_and_augment()
 
 ```
-
-The full project structure should look something like this:
+The full project structure including the raw downloaded data should look something like this:
 
 ```
 ├───data
