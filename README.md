@@ -1,9 +1,13 @@
 
 # Judicial decision making at the Bundespatentgericht, 2000 - 2021
 
-This repository contains Julia code accompanying the paper 'Patent litigation between legalist and behaviouralist accounts of judicial decision making: Validity trials at the German Federal Patent Court, 2000-2020' written in the context of the UNIFIED project. It contains all steps to reproduce the analysis, including download, data cleaning and augmentation, modeling and visualization. 
+This repository contains Julia code accompanying the paper 'Legalist and realist decision-making in Patent law: Validity Cases in Germany' written in the context of the UNIFIED project. It contains all steps to reproduce the analysis, including download, data cleaning and augmentation, modeling and visualization. 
 
-A simple workflow to reproduce the analysis could look like this:
+The results reported in the paper can be obtained by running the notebooks `descriptive-results.ipynb` and `model-results.ipynb` in the `scripts` folder.
+This uses the cleaned data in the `data.jsonl` file contained in the repository.
+
+A workflow to reproduce the full data extraction process could look like this:
+
 
 ```julia
 # run from the root directory of the project
